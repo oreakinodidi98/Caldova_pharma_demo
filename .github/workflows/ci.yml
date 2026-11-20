@@ -5,10 +5,12 @@ on:
     branches: [main]
     paths:
       - 'caldova_Pharmaceuticals/**'
+      - '.github/workflows/ci.yml'
   pull_request:
     branches: [main]
     paths:
       - 'caldova_Pharmaceuticals/**'
+      - '.github/workflows/ci.yml'
   workflow_dispatch:
 
 permissions:
@@ -44,7 +46,41 @@ jobs:
           java-version: ${{ steps.java.outputs.version }}
           cache: maven
           cache-dependency-path: caldova_Pharmaceuticals/pom.xml
+      - name: Prepare Oracle and test credentials
+        working-directory: caldova_Pharmaceuticals
+        shell: pwsh
+        run: |
+          ./scripts/setup-demo.ps1
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value 'SPRING_DATASOURCE_URL=jdbc:oracle:thin:@127.0.0.1:1521/FREEPDB1'
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value 'SPRING_DATASOURCE_USERNAME=CALDOVA_READ'
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value 'ORACLE_SETUP_USER=CALDOVA_OWNER'
+          $credentials = @{
+            CALDOVA_READ_PASSWORD = 'SPRING_DATASOURCE_PASSWORD'
+            CALDOVA_OWNER_PASSWORD = 'ORACLE_SETUP_PASSWORD'
+            PRESENTER_PASSWORD = 'PRESENTER_PASSWORD'
+          }
+          foreach ($key in $credentials.Keys) {
+            $lines = @(Get-Content -LiteralPath '.env' | Where-Object { $_.StartsWith("$key=") })
+            if ($lines.Count -ne 1 -or $lines[0].Length -le $key.Length + 1) {
+              throw "Missing or duplicate test credential: $key"
+            }
+            $value = $lines[0].Substring($key.Length + 1)
+            Write-Output "::add-mask::$value"
+            Add-Content -LiteralPath $env:GITHUB_ENV -Value "$($credentials[$key])=$value"
+          }
 # Maven command to compile the app, run tests, and perform any configured verification checks
       - name: Build and test
         working-directory: caldova_Pharmaceuticals
         run: mvn --batch-mode --no-transfer-progress verify
+      - name: Store test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: caldova-build-tests
+          path: |
+            caldova_Pharmaceuticals/target/surefire-reports/
+            caldova_Pharmaceuticals/target/failsafe-reports/
+      - name: Stop this job's database
+        if: always()
+        working-directory: caldova_Pharmaceuticals
+        run: docker compose down

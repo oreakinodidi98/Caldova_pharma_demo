@@ -71,6 +71,8 @@ This runs Maven `verify` in the Java 8 container. It covers exact dataset counts
 
 The pinned Maven Wrapper is also available for a host with Java 8. Host `.\mvnw.cmd verify` additionally requires the datasource variables above and `ORACLE_SETUP_USER=CALDOVA_OWNER` plus `ORACLE_SETUP_PASSWORD` for test-only owner access.
 
+The [Build and test workflow](../.github/workflows/ci.yml) selects the JDK from `pom.xml`, prepares real Oracle and the presenter account, and supplies the database and test credentials before running Maven `verify` on the runner. It masks passwords, saves test reports, and stops the job's containers even if tests fail. No repository secrets are needed for this fictional test database.
+
 Browser validation needs Node.js 22 or newer as **test tooling only**. It is not needed to run the application:
 
 ```powershell
