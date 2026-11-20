@@ -21,18 +21,19 @@ public class OperationsService {
 
     public List<OperationsRecords.PlantSummary> plantSummaries() { return repository.plantSummaries(); }
     public List<OperationsRecords.Maintenance> upcomingMaintenance() {
-        return repository.maintenance("","").stream()
+        return repository.maintenance("","",null).stream()
                 .filter(work -> !"COMPLETED".equals(work.status)).collect(Collectors.toList());
     }
     public List<OperationsRecords.ShiftSummary> shiftSummaries() {
         return repository.shiftSummaries(LocalDate.parse(DEMO_DATE));
     }
-    public List<OperationsRecords.Maintenance> maintenance(String plant, String status) {
+    public List<OperationsRecords.Maintenance> maintenance(String plant, String status, Long line) {
         production.validatePlant(plant);
         if (!status.isEmpty() && !Arrays.asList("SCHEDULED","IN_PROGRESS","COMPLETED").contains(status)) {
             throw new IllegalArgumentException("Select a listed maintenance status.");
         }
-        return repository.maintenance(plant,status);
+        if (line != null && line <= 0) { throw new IllegalArgumentException("Use a positive line ID."); }
+        return repository.maintenance(plant,status,line);
     }
     public List<OperationsRecords.RotaEntry> rota(String plant, String date, String shift) {
         production.validatePlant(plant);

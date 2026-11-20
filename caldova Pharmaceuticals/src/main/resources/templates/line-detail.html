@@ -49,6 +49,27 @@
             </table>
           </div>
         </section>
+        <section class="panel" aria-labelledby="maintenance-heading">
+          <div class="panel-heading">
+            <h2 id="maintenance-heading">Maintenance history</h2>
+            <p><a th:href="@{/maintenance(line=${line.id})}">View line maintenance</a></p>
+          </div>
+          <div class="table-scroll" role="region" aria-label="Maintenance history" tabindex="0">
+            <table>
+              <caption>Read-only maintenance records for this line; dates in UTC</caption>
+              <thead><tr><th scope="col">Planned date (UTC)</th><th scope="col">Title</th><th scope="col">Status</th><th scope="col">Completed date (UTC)</th></tr></thead>
+              <tbody>
+                <tr th:each="item : ${maintenance}">
+                  <td class="date" th:text="${item.plannedDate}">Date</td>
+                  <th scope="row" th:text="${item.title}">Work</th>
+                  <td><span class="status" th:classappend="${item.cssClass}" th:text="${item.statusLabel}">Status</span></td>
+                  <td class="date" th:text="${item.completedDate ?: 'Not recorded'}">Not recorded</td>
+                </tr>
+                <tr th:if="${maintenance == null or #lists.isEmpty(maintenance)}"><td colspan="4" class="empty-state">No maintenance history is recorded for this line.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
       <div>
         <section class="panel" aria-labelledby="checks-heading">

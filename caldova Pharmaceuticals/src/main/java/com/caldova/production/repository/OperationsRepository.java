@@ -31,11 +31,12 @@ public class OperationsRepository {
                         rs.getInt(3),rs.getInt(4),rs.getInt(5),rs.getInt(6)));
     }
 
-    public List<OperationsRecords.Maintenance> maintenance(String plant, String status) {
+    public List<OperationsRecords.Maintenance> maintenance(String plant, String status, Long line) {
         Map<String,Object> values = new HashMap<>();
-        values.put("plant",plant); values.put("status",status);
+        values.put("plant",plant); values.put("status",status); values.put("line",line);
         return jdbc.query(MAINTENANCE_SELECT
                         + "WHERE (:plant IS NULL OR p.plant_code=:plant) AND (:status IS NULL OR w.work_status=:status) "
+                        + (line == null ? "" : "AND l.line_id=:line ")
                         + "ORDER BY w.planned_date,w.work_id", values,
                 (rs,row) -> new OperationsRecords.Maintenance(rs.getLong(1),rs.getLong(2),rs.getString(3),
                         rs.getString(4),rs.getString(5),rs.getString(6),rs.getString(7),rs.getString(8),

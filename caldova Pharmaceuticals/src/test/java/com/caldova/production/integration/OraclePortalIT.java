@@ -81,6 +81,15 @@ class OraclePortalIT {
         mvc.perform(get("/maintenance").with(user("presenter")).param("plant","NB").param("status","COMPLETED"))
                 .andExpect(status().isOk()).andExpect(model().attribute("work",hasSize(1)))
                 .andExpect(content().string(containsString("Recorded equipment inspection")));
+        mvc.perform(get("/maintenance").with(user("presenter")).param("plant","NB").param("line","2").param("status","IN_PROGRESS"))
+                .andExpect(status().isOk()).andExpect(model().attribute("work",hasSize(1)))
+                .andExpect(content().string(containsString("Planned service review")));
+        mvc.perform(get("/maintenance").with(user("presenter")).param("plant","WH").param("line","2"))
+                .andExpect(status().isOk()).andExpect(model().attribute("work",hasSize(0)));
+        mvc.perform(get("/maintenance").with(user("presenter")).param("line","0")).andExpect(status().isBadRequest());
+        mvc.perform(get("/lines/1").with(user("presenter"))).andExpect(status().isOk())
+                .andExpect(model().attribute("maintenance",hasSize(1)))
+                .andExpect(content().string(containsString("Recorded equipment inspection")));
         mvc.perform(get("/rota").with(user("presenter")).param("plant","NB").param("date","2026-11-20").param("shift","NIGHT"))
                 .andExpect(status().isOk()).andExpect(model().attribute("assignments",hasSize(2)))
                 .andExpect(content().string(containsString("Casey Gray")))

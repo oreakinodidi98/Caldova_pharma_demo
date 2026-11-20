@@ -33,6 +33,11 @@ jobs:
       - name: Verify Java 8 against real Oracle
         shell: pwsh
         run: ./scripts/verify-demo.ps1
+      - name: Verify reset preserves accounts and restores all records
+        shell: pwsh
+        run: |
+          ./scripts/reset-demo.ps1 -ConfirmReset
+          docker compose run --rm --no-deps verify mvn -B -ntp failsafe:integration-test failsafe:verify '-Dit.test=OracleDatasetIT,OraclePortalIT'
       - name: Start application
         run: docker compose up -d --build --wait --wait-timeout 180 app
       - name: Install browser validation dependencies

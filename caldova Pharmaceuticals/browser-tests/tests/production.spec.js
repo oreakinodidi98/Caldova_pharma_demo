@@ -16,10 +16,11 @@ test('operator filters Oracle lines, reads details, and returns to the filtered 
   await expect(page.locator('tbody tr')).toHaveCount(3);
   await page.getByRole('link', { name: 'NB-001', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Line NB-001');
-  for (const title of ['Alarm history', 'Recorded equipment signals', 'Readiness checks', 'Fictional manual excerpts']) {
+  for (const title of ['Alarm history', 'Recorded equipment signals', 'Readiness checks', 'Fictional manual excerpts', 'Maintenance history']) {
     await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
   }
   await expect(page.getByText('CP-12 / 4.2', { exact: false })).toBeVisible();
+  await expect(page.getByText('Recorded equipment inspection', { exact: true })).toBeVisible();
   await page.getByRole('link', { name: /Back to production lines/ }).click();
   await expect(page.getByLabel('Plant', { exact: true })).toHaveValue('NB');
   await expect(page.getByLabel('Status', { exact: true })).toHaveValue('STOPPED');
@@ -65,7 +66,7 @@ test('keyboard controls expose visible focus and status text has readable contra
   await expect(page.locator('tbody tr')).toHaveCount(3);
 });
 
-test('bad requests and missing records render error pages with their actual HTTP status', async ({ page, request }) => {
+test('bad requests and missing records render error pages with their actual HTTP status', async ({ page }) => {
   let response = await page.goto('/lines?plant=invalid');
   expect(response.status()).toBe(400);
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Invalid request');
@@ -73,8 +74,8 @@ test('bad requests and missing records render error pages with their actual HTTP
   expect(response.status()).toBe(404);
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Line not found');
   const token = await page.locator('form[action="/logout"] input[name="_csrf"]').inputValue();
-  const mutation = await request.post('/lines/1', { form: { _csrf: token } });
+  const mutation = await page.request.post('/lines/1', { form: { _csrf: token } });
   expect(mutation.status()).toBe(405);
-  const health = await request.get('/api/health');
+  const health = await page.request.get('/api/health');
   expect(await health.json()).toEqual({ status: 'UP', services: { oracle: 'UP' } });
 });

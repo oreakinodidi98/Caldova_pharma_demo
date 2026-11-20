@@ -25,6 +25,8 @@ From this folder in PowerShell:
 
 Open `http://127.0.0.1:8080/`. The script creates local credentials if needed, starts Oracle, applies the versioned schema and repeatable fictional dataset, builds the JAR with Java 8, and starts the application. It checks readiness before reporting success. The first run takes longer while images and dependencies download.
 
+To run the same steps without the PowerShell helper scripts, follow the [manual startup commands](../README.md#start-manually-without-the-helper-scripts).
+
 Application HTTP and the Oracle listener are published only on `127.0.0.1`. The application container listens on its container interface so Docker can forward the loopback-bound host port.
 
 Sign in as `presenter`. Read `PRESENTER_PASSWORD` from the local ignored `.env` file. Setup stores a BCrypt password hash in the existing Oracle database, not a plaintext password. There is no public registration or employee account creation.
@@ -85,9 +87,9 @@ To test a real database outage and persistence, return to this application's fol
 .\scripts\check-persistence.ps1
 ```
 
-This signs in, stops only the demo Oracle container, checks HTTP 503 for data pages and a fresh sign-in attempt, and checks DOWN readiness. It restarts Oracle and verifies sign-in and data access. Do not run it at the same time as other tests or a presentation.
+This signs in, stops only the demo Oracle container, checks HTTP 503 for data pages and a fresh sign-in attempt, and checks DOWN readiness. It restarts Oracle and verifies sign-in, all 160 lines, 12 maintenance records, and 16 assignments on the default day. Do not run it at the same time as other tests or a presentation.
 
-The repository workflow runs these checks for application changes, manual runs, and weekly scheduled validation. Local checks do not prove that the hosted workflow has run.
+The repository workflow runs these checks for application changes, manual runs, and weekly scheduled validation. It also resets fictional data and checks record totals and sign-in without reapplying setup, so setup cannot hide an incomplete reset. Local checks do not prove that the hosted workflow has run.
 
 ## Repeat or stop the demo
 

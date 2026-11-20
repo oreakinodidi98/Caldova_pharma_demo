@@ -25,13 +25,17 @@
           <option value="COMPLETED" th:selected="${status == 'COMPLETED'}">Completed</option>
         </select>
       </div>
+      <div>
+        <label for="line">Line ID</label>
+        <input id="line" type="number" min="1" name="line" th:value="${line}">
+      </div>
       <button type="submit">Apply filters</button>
       <a href="/maintenance" th:href="@{/maintenance}">Clear filters</a>
     </form>
   </section>
   <section class="panel register" aria-labelledby="results-heading">
     <div class="panel-heading"><h2 id="results-heading">Maintenance register</h2><p><strong th:text="${#lists.size(work)}">0</strong> results</p></div>
-    <p class="filter-summary">Current filters: Plant <strong th:text="${plant == null or plant == '' ? 'All' : plant}">All</strong>; Status <strong th:text="${status == null or status == '' ? 'All' : status}">All</strong>. All matching work is shown.</p>
+    <p class="filter-summary">Current filters: Plant <strong th:text="${plant == null or plant == '' ? 'All' : plant}">All</strong>; Status <strong th:text="${status == null or status == '' ? 'All' : status}">All</strong>; Line ID <strong th:text="${line == null ? 'All' : line}">All</strong>. All matching work is shown.</p>
     <div class="table-scroll" role="region" aria-label="Maintenance results" tabindex="0">
       <table>
         <caption>Scheduled work and completed maintenance history; dates in UTC</caption>

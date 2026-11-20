@@ -25,6 +25,15 @@ test('legacy tabs show overview, filtered maintenance, and the fictional employe
   await page.getByRole('button', { name: 'Apply filters', exact: true }).click();
   await expect(page.locator('tbody tr')).toHaveCount(1);
   await expect(page.locator('tbody')).toContainText('Recorded equipment inspection');
+  await page.getByLabel('Line ID', { exact: true }).fill('2');
+  await page.getByLabel('Status', { exact: true }).selectOption('IN_PROGRESS');
+  await page.getByRole('button', { name: 'Apply filters', exact: true }).click();
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await expect(page.locator('tbody')).toContainText('Planned service review');
+  await expect(page.getByLabel('Line ID', { exact: true })).toHaveValue('2');
+  await page.getByRole('link', { name: 'Clear filters', exact: true }).click();
+  await expect(page.locator('tbody tr')).toHaveCount(12);
+  await expect(page.getByLabel('Line ID', { exact: true })).toBeEmpty();
   await page.getByRole('link', { name: 'Shift rota', exact: true }).first().click();
   await page.getByLabel('Plant', { exact: true }).selectOption('NB');
   await page.getByLabel('Date', { exact: true }).fill('2026-11-20');

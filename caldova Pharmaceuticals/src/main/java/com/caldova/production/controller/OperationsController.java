@@ -29,11 +29,13 @@ public class OperationsController {
 
     @GetMapping("/maintenance")
     public String maintenance(@RequestParam(defaultValue="") String plant,
-                              @RequestParam(defaultValue="") String status, Model model) {
-        model.addAttribute("work",operations.maintenance(plant,status));
+                              @RequestParam(defaultValue="") String status,
+                              @RequestParam(required=false) Long line, Model model) {
+        model.addAttribute("work",operations.maintenance(plant,status,line));
         model.addAttribute("plants",production.plants());
         model.addAttribute("plant",plant);
         model.addAttribute("status",status);
+        model.addAttribute("line",line);
         return "maintenance";
     }
 

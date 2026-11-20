@@ -4,11 +4,88 @@
 
 ## Run the application
 
-The application is in [caldova Pharmaceuticals](./caldova%20Pharmaceuticals/). See its [run guide](./caldova%20Pharmaceuticals/README.md) for setup, validation, and reset commands.
+1. Download and extract the repository. Install and start Docker Desktop with Linux containers. You also need PowerShell 5.1 or newer, free ports 8080 and 1521, and at least 4 GB of memory allocated to Docker. No separate Java or Oracle installation is needed.
+2. Open PowerShell in the extracted repository folder and run:
 
-The demo uses Java 8 and Spring Boot 2.7.18 in one application, with a real local Oracle Free database. Docker supplies the Java 8 runtime on Windows ARM64, without changing the host Java installation. The browser interface is available at `http://127.0.0.1:8080` after startup.
+   ```powershell
+   Set-Location -LiteralPath '.\caldova Pharmaceuticals'
+   .\scripts\start-demo.ps1
+   ```
 
-Sign in as `presenter` with `PRESENTER_PASSWORD` from the application's ignored `.env` file. Oracle stores a BCrypt password hash. The portal has an overview, production lines, read-only maintenance, and a fictional employee shift rota. Its tabs and forms retain the legacy intranet style.
+3. Open `http://127.0.0.1:8080`. Sign in as `presenter` using `PRESENTER_PASSWORD` from the `.env` file created in the application folder.
+
+The script starts Oracle, creates the schema and fictional records, builds the Java 8 application, and waits until it is ready. The first run needs internet access and takes longer to download images and dependencies.
+
+To stop without deleting data, run `.\scripts\stop-demo.ps1` from the same application folder. Keep `.env` with the database volume; do not share or commit it. See the [run guide](./caldova%20Pharmaceuticals/README.md) for tests, reset commands, and error recovery. This old stack is a local demo only; do not expose it to a shared network.
+
+### What the startup script does
+
+`Set-Location` changes the current folder. `.\scripts\start-demo.ps1` then runs the startup script from that folder. It performs these steps:
+
+1. **Prepare credentials:** create `.env` with random local passwords if needed. Preserve existing credentials and stop if an existing Oracle volume has lost its `.env`.
+2. **Start Oracle:** start the database container and wait for its health check.
+3. **Prepare the database:** run the versioned SQL files to create the owner/read accounts and tables, and insert or update the fixed fictional records without duplicates. The app receives read-only access.
+4. **Prepare sign-in:** run a Java setup command in a temporary Java 8 container. It creates the `presenter` account with a BCrypt hash, or verifies the existing hash without changing it.
+5. **Build and start the app:** Docker builds the Java 8 JAR and starts it. The script checks `/api/health` and reports success only when the app can read Oracle. Failed Docker commands or readiness checks stop startup.
+
+The script runs these commands for you. It does not connect to equipment, deploy to Azure, or delete the database volume. Setup reapplies the fixed demo values, so it can overwrite manual changes to seeded records; it preserves existing account passwords.
+
+### Start manually without the helper scripts
+
+These PowerShell commands use the same Docker configuration but do not run the repository's PowerShell scripts. Run each step separately and continue only if it succeeds.
+
+**1. Open the application folder.** Start Docker Desktop with Linux containers, then run this from the extracted repository folder:
+
+```powershell
+Set-Location -LiteralPath '.\caldova Pharmaceuticals'
+docker info
+```
+
+`docker info` checks that the Docker engine is available.
+
+**2. Prepare local credentials.** For a new installation with no `.env` or existing demo volume, copy the blank template:
+
+```powershell
+Copy-Item -LiteralPath '.env.example' -Destination '.env'
+```
+
+Edit `.env` locally and fill in all four variables: `ORACLE_PWD`, `CALDOVA_OWNER_PASSWORD`, `CALDOVA_READ_PASSWORD`, and `PRESENTER_PASSWORD`. Use four different passwords from a password manager. For compatibility with the scripts and SQL setup, use 24-64 letters/digits for each password, starting with a letter. Do not leave values blank or commit this file.
+
+If `.env` already exists, keep it and skip the copy. If `caldova-oracle-data` exists but `.env` is missing, restore the original file; do not create replacement passwords or delete the volume. Compose reads `.env` automatically.
+
+**3. Start Oracle and create the tables.**
+
+```powershell
+docker compose up -d --wait --wait-timeout 420 oracle
+docker compose exec -T oracle sh -c 'sqlplus -s / as sysdba @/opt/caldova/sql/setup.sql "$CALDOVA_OWNER_PASSWORD" "$CALDOVA_READ_PASSWORD"'
+```
+
+The first command starts Oracle in the background (`-d`) and waits until it is healthy. The second runs SQLPlus inside that container. Password variables are expanded there, not typed into your command history. The mounted `setup.sql` creates the `CALDOVA_OWNER` schema, loads fictional records, and grants SELECT access to `CALDOVA_READ`. It does not delete existing records.
+
+**4. Create or verify the presenter account.**
+
+```powershell
+docker compose run --rm --no-deps verify mvn -B -ntp compile exec:exec '-Dexec.executable=java' '-Dexec.args=-classpath %classpath com.caldova.production.setup.PresenterAccountSetup'
+```
+
+This uses the `verify` tools service to compile and run the account setup with Java 8; it does not run the test suite. It reads credentials from the container environment and stores only a BCrypt hash in Oracle. `--rm` removes the temporary container when finished; `--no-deps` uses the Oracle container you already started. Existing presenter passwords are verified, not replaced.
+
+**5. Build, start, and check the application.**
+
+```powershell
+docker compose up -d --build --wait --wait-timeout 180 app
+Invoke-RestMethod -Uri 'http://127.0.0.1:8080/api/health'
+```
+
+Docker builds the JAR and starts the app with `CALDOVA_READ`, not the schema owner. `--wait` checks container health; the HTTP check should report `UP` for the app and Oracle. Open `http://127.0.0.1:8080` and sign in as `presenter` using your `PRESENTER_PASSWORD`.
+
+For later starts, keep `.env` and the database volume and repeat step 5; Compose also starts Oracle if needed. Stop both services without deleting data:
+
+```powershell
+docker compose stop app oracle
+```
+
+Do not use `docker compose down --volumes`: it deletes the stored demo database.
 
 ## Customer background
 
@@ -20,18 +97,22 @@ Caldova wants to reduce production delays, but it must first understand the appl
 
 ## Current application
 
-The intended legacy demo represents a monolithic application with an older interface and a largely manual troubleshooting process.
+The legacy app is one Java application with server-rendered Thymeleaf pages, an older intranet interface, and manual troubleshooting. It contains four fictional plants and 160 production lines, with two shifts per line each day.
 
 | Area | Intended legacy setup |
 | --- | --- |
-| Hosting | On-premises infrastructure |
+| Hosting | Local Docker containers representing an on-premises system |
 | Application | Java 8 and Spring Boot 2.7.18 |
-| Database | Oracle Database |
+| Database | Real Oracle Database Free; service `FREEPDB1` |
 | Interface | Legacy tabs for overview, production lines, maintenance, and employee rota |
 | Sign-in | One presenter account stored in Oracle; no public registration |
 | Diagnostic information | Limited alarm history, equipment signals, readiness checks, and equipment manuals |
 
 An operator can identify a line with a problem and open its details. However, the operator must review the available information manually to determine what to check next. The application does not provide AI-assisted diagnosis.
+
+Oracle stores line records, alarms, maintenance history, employees, shift assignments, and the presenter's BCrypt password hash. The app reads these tables through a read-only database account. Records persist in a named Docker volume across restarts. If Oracle is unavailable, the app reports an error rather than showing substitute data.
+
+After sign-in, use the Overview, Production lines, Maintenance, and Shift rota tabs. Operational records are read-only and are not live equipment data. The rota defaults to the fixed demo date `2026-11-19`; no equipment control, automatic scheduling, or AI is included.
 
 ## Business problem
 

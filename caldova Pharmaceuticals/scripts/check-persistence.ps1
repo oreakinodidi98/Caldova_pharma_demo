@@ -32,10 +32,18 @@ function Sign-InPresenter([int]$Expected) {
     } finally { Remove-Item -LiteralPath $output }
 }
 
+function Assert-OperationalRecords {
+    $lines = Assert-HttpStatus '/lines' 200
+    if ([regex]::Matches($lines, '/lines/\d+').Count -ne 160) { throw 'Expected 160 persisted lines.' }
+    $maintenance = Assert-HttpStatus '/maintenance' 200
+    if ([regex]::Matches($maintenance, 'href="/lines/\d+"').Count -ne 12) { throw 'Expected 12 maintenance records.' }
+    $rota = Assert-HttpStatus '/rota' 200
+    if ([regex]::Matches($rota, '\b(?:NB|WH|EM|SW)-EMP\d{3}\b').Count -ne 16) { throw 'Expected 16 employee assignments for the default day.' }
+}
+
 try {
     Sign-InPresenter 302
-    $before = Assert-HttpStatus '/lines' 200
-    if ([regex]::Matches($before, '/lines/\d+').Count -ne 160) { throw 'Expected 160 links before restart.' }
+    Assert-OperationalRecords
     Invoke-Compose stop oracle
     try {
         $failure = Assert-HttpStatus '/lines' 503
@@ -49,10 +57,7 @@ try {
     }
     [IO.File]::WriteAllText($cookie, '')
     Sign-InPresenter 302
-    $after = Assert-HttpStatus '/lines' 200
-    if ([regex]::Matches($after, '/lines/\d+').Count -ne 160) { throw 'Expected 160 persisted lines after restart.' }
-    Assert-HttpStatus '/maintenance' 200 | Out-Null
-    Assert-HttpStatus '/rota' 200 | Out-Null
+    Assert-OperationalRecords
     Assert-HttpStatus '/api/health' 200 | Out-Null
-    Write-Host 'PASS: Oracle outage returns 503 for data and sign-in; restart preserves accounts and 160 line records.'
+    Write-Host 'PASS: Oracle outage returns 503 for data and sign-in; restart preserves accounts, 160 lines, maintenance and employee rota.'
 } finally { Remove-Item -LiteralPath $cookie }
