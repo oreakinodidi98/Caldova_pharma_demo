@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(pageTitle)">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${pageTitle} + ' | Caldova Pharmaceuticals'">Caldova Pharmaceuticals</title>
+  <link rel="stylesheet" href="/css/pico-2.1.1.min.css" th:href="@{/css/pico-2.1.1.min.css}">
+  <link rel="stylesheet" href="/css/legacy.css" th:href="@{/css/legacy.css}">
+</head>
+<body class="legacy">
+<header class="site-header" th:fragment="header">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <div class="masthead">
+    <a class="brand" href="/" th:href="${#httpServletRequest.remoteUser != null} ? @{/} : @{/login}">CALDOVA <span>PHARMACEUTICALS</span></a>
+    <span class="intranet-label">Production operations / Internal reference</span>
+  </div>
+  <nav class="site-nav" aria-label="Main navigation" th:if="${#httpServletRequest.remoteUser != null}">
+    <div class="nav-tabs">
+      <a href="/" th:href="@{/}">Overview</a>
+      <a href="/lines" th:href="@{/lines}">Production lines</a>
+      <a href="/maintenance" th:href="@{/maintenance}">Maintenance</a>
+      <a href="/rota" th:href="@{/rota}">Shift rota</a>
+    </div>
+    <div class="session-controls">
+      <span>Signed in: <strong th:text="${#httpServletRequest.remoteUser}">Presenter</strong></span>
+      <form method="post" action="/logout" th:action="@{/logout}">
+        <button type="submit">Sign out</button>
+      </form>
+    </div>
+  </nav>
+</header>
+<footer class="site-footer" th:fragment="footer">
+  <p>Caldova Pharmaceuticals &middot; Fictional demonstration &middot; Four plants / 160 lines / Two shifts per day</p>
+  <p>Historical records only. No live monitoring or equipment control. Stored samples can be incomplete.</p>
+</footer>
+</body>
+</html>

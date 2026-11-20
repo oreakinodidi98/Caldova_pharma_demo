@@ -1,0 +1,55 @@
+name: caldova-pharmaceuticals
+
+services:
+  oracle:
+    image: gvenzl/oracle-free:23.26.0-slim
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_PWD:?Run scripts/setup-demo.ps1 first}
+      CALDOVA_OWNER_PASSWORD: ${CALDOVA_OWNER_PASSWORD:?Missing owner password}
+      CALDOVA_READ_PASSWORD: ${CALDOVA_READ_PASSWORD:?Missing read password}
+    ports:
+      - "127.0.0.1:1521:1521"
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+      - ./src/main/resources/db/oracle:/opt/caldova/sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 30
+    shm_size: 1g
+
+  app:
+    build: .
+    environment:
+      SERVER_ADDRESS: 0.0.0.0
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@oracle:1521/FREEPDB1
+      SPRING_DATASOURCE_USERNAME: CALDOVA_READ
+      SPRING_DATASOURCE_PASSWORD: ${CALDOVA_READ_PASSWORD:?Missing read password}
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      oracle:
+        condition: service_healthy
+
+  verify:
+    image: maven:3.9.9-eclipse-temurin-8
+    profiles: ["tools"]
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - maven-cache:/root/.m2
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@oracle:1521/FREEPDB1
+      SPRING_DATASOURCE_USERNAME: CALDOVA_READ
+      SPRING_DATASOURCE_PASSWORD: ${CALDOVA_READ_PASSWORD:?Missing read password}
+      ORACLE_SETUP_USER: CALDOVA_OWNER
+      ORACLE_SETUP_PASSWORD: ${CALDOVA_OWNER_PASSWORD:?Missing owner password}
+      PRESENTER_PASSWORD: ${PRESENTER_PASSWORD:?Run scripts/setup-demo.ps1 to create presenter credentials}
+    command: ["mvn", "-B", "-ntp", "verify"]
+
+volumes:
+  oracle-data:
+    name: caldova-oracle-data
+  maven-cache:

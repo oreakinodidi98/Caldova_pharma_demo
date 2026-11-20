@@ -1,6 +1,14 @@
 # Caldova Pharmaceuticals: Legacy Production Line Demo
 
-> Caldova Pharmaceuticals is a fictional company. This page describes the customer background and intended legacy demo. The operating figures are illustrative, not measured results.
+> Caldova Pharmaceuticals is a fictional company. This page describes the customer background and legacy demo. The operating figures are illustrative, not measured results.
+
+## Run the application
+
+The application is in [caldova Pharmaceuticals](./caldova%20Pharmaceuticals/). See its [run guide](./caldova%20Pharmaceuticals/README.md) for setup, validation, and reset commands.
+
+The demo uses Java 8 and Spring Boot 2.7.18 in one application, with a real local Oracle Free database. Docker supplies the Java 8 runtime on Windows ARM64, without changing the host Java installation. The browser interface is available at `http://127.0.0.1:8080` after startup.
+
+Sign in as `presenter` with `PRESENTER_PASSWORD` from the application's ignored `.env` file. Oracle stores a BCrypt password hash. The portal has an overview, production lines, read-only maintenance, and a fictional employee shift rota. Its tabs and forms retain the legacy intranet style.
 
 ## Customer background
 
@@ -19,7 +27,8 @@ The intended legacy demo represents a monolithic application with an older inter
 | Hosting | On-premises infrastructure |
 | Application | Java 8 and Spring Boot 2.7.18 |
 | Database | Oracle Database |
-| Interface | Production line overview with access to individual lines |
+| Interface | Legacy tabs for overview, production lines, maintenance, and employee rota |
+| Sign-in | One presenter account stored in Oracle; no public registration |
 | Diagnostic information | Limited alarm history, equipment signals, readiness checks, and equipment manuals |
 
 An operator can identify a line with a problem and open its details. However, the operator must review the available information manually to determine what to check next. The application does not provide AI-assisted diagnosis.
@@ -72,5 +81,5 @@ Caldova should not have to wait for a large migration project to keep its applic
 
 This repository is intended to demonstrate the legacy production line application only: its older interface, limited diagnostic information, and manual investigation workflow. It provides the starting point for explaining the modernisation opportunity.
 
-This page describes the scenario, not a claim that the application is already implemented. Application modernisation, the database migration, AI agents, model tuning, forecasting, shift scheduling, and cloud deployment are planned outcomes or future ambitions, not capabilities included in this legacy demo.
+The legacy application is implemented in [caldova Pharmaceuticals](./caldova%20Pharmaceuticals/). It uses a fixed fictional dataset and read-only investigation, maintenance, and employee rota flows. Presenter sign-in protects operational pages. Application modernisation, database migration, AI agents, model tuning, forecasting, automated shift scheduling, and cloud deployment remain future ambitions, not capabilities included in this legacy demo.
 

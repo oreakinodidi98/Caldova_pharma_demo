@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Maintenance')}"></head>
+<body class="legacy">
+<header th:replace="~{fragments :: header}"></header>
+<main id="main" class="page" tabindex="-1">
+  <div class="page-heading"><div><p class="eyebrow">Production operations / Work register</p><h1>Maintenance</h1></div></div>
+  <p class="notice">Fictional scheduled work and maintenance history. Records are read-only; dates are in UTC.</p>
+  <section class="panel" aria-labelledby="filter-heading">
+    <h2 id="filter-heading">Find maintenance work</h2>
+    <form method="get" action="/maintenance" th:action="@{/maintenance}" class="filter-form">
+      <div>
+        <label for="plant">Plant</label>
+        <select id="plant" name="plant">
+          <option value="" th:selected="${plant == null or plant == ''}">All four plants</option>
+          <option th:each="p : ${plants}" th:value="${p.code}" th:text="${p.name}" th:selected="${p.code == plant}"></option>
+        </select>
+      </div>
+      <div>
+        <label for="status">Status</label>
+        <select id="status" name="status">
+          <option value="" th:selected="${status == null or status == ''}">All statuses</option>
+          <option value="SCHEDULED" th:selected="${status == 'SCHEDULED'}">Scheduled</option>
+          <option value="IN_PROGRESS" th:selected="${status == 'IN_PROGRESS'}">In progress</option>
+          <option value="COMPLETED" th:selected="${status == 'COMPLETED'}">Completed</option>
+        </select>
+      </div>
+      <button type="submit">Apply filters</button>
+      <a href="/maintenance" th:href="@{/maintenance}">Clear filters</a>
+    </form>
+  </section>
+  <section class="panel register" aria-labelledby="results-heading">
+    <div class="panel-heading"><h2 id="results-heading">Maintenance register</h2><p><strong th:text="${#lists.size(work)}">0</strong> results</p></div>
+    <p class="filter-summary">Current filters: Plant <strong th:text="${plant == null or plant == '' ? 'All' : plant}">All</strong>; Status <strong th:text="${status == null or status == '' ? 'All' : status}">All</strong>. All matching work is shown.</p>
+    <div class="table-scroll" role="region" aria-label="Maintenance results" tabindex="0">
+      <table>
+        <caption>Scheduled work and completed maintenance history; dates in UTC</caption>
+        <thead><tr><th scope="col">Line</th><th scope="col">Plant</th><th scope="col">Work</th><th scope="col">Status</th><th scope="col">Planned date (UTC)</th><th scope="col">Completed date (UTC)</th><th scope="col">Note</th></tr></thead>
+        <tbody>
+          <tr th:each="item : ${work}">
+            <th scope="row"><a th:href="@{/lines/{id}(id=${item.lineId})}" th:text="${item.lineCode}">Line</a></th>
+            <td th:text="${item.plantName}">Plant</td>
+            <td th:text="${item.title}">Work</td>
+            <td><span class="status" th:classappend="${item.cssClass}" th:text="${item.statusLabel}">Status</span></td>
+            <td class="date" th:text="${item.plannedDate}">Date</td>
+            <td class="date" th:text="${item.completedDate ?: 'Not recorded'}">Not recorded</td>
+            <td th:text="${item.note ?: 'Not recorded'}">Not recorded</td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(work)}"><td colspan="7" class="empty-state"><strong>No maintenance work matches these filters.</strong> Choose different filters or <a href="/maintenance" th:href="@{/maintenance}">Clear filters</a>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

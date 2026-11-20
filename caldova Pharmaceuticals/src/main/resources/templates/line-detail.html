@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Line detail')}"></head>
+<body class="legacy">
+<header th:replace="~{fragments :: header}"></header>
+<main id="main" class="page" tabindex="-1">
+  <p class="back-link"><a th:href="@{/lines(plant=${plant ?: ''},status=${status ?: ''})}">&larr; Back to production lines</a></p>
+  <th:block th:if="${detail != null and detail.line != null}" th:with="line=${detail.line}">
+    <div class="page-heading">
+      <div><p class="eyebrow">Manual investigation / Line record</p><h1>Line <span th:text="${line.code ?: 'Not recorded'}">Not recorded</span></h1>
+        <p><span th:text="${line.plantName ?: line.plantCode ?: 'Plant not recorded'}">Plant not recorded</span> &middot; <span th:text="${line.process ?: 'Process not recorded'}">Process not recorded</span></p>
+      </div>
+      <p class="snapshot">Snapshot (UTC)<br><strong th:text="${line.snapshotTime ?: 'Not recorded'}">Not recorded</strong></p>
+    </div>
+    <p class="notice">Historical records, not live equipment conditions. Investigation is manual. Stored samples can be incomplete.</p>
+    <section class="panel line-summary" aria-labelledby="summary-heading">
+      <h2 id="summary-heading">Recorded line summary</h2>
+      <dl class="summary-list">
+        <div><dt>Recorded status</dt><dd><span class="status" th:classappend="${line.status != null ? line.status.cssClass : ''}" th:text="${line.status != null ? line.status.label : 'Not recorded'}">Not recorded</span></dd></div>
+        <div><dt>Equipment reference</dt><dd th:text="${line.equipmentReference ?: 'Not recorded'}">Not recorded</dd></div>
+        <div><dt>Last recorded issue</dt><dd th:text="${line.lastIssue ?: 'Not recorded'}">Not recorded</dd></div>
+      </dl>
+    </section>
+    <div class="detail-grid">
+      <div>
+        <section class="panel" aria-labelledby="alarms-heading">
+          <h2 id="alarms-heading">Alarm history</h2>
+          <div class="table-scroll" role="region" aria-label="Alarm history" tabindex="0">
+            <table>
+              <caption>Stored alarms for this line</caption>
+              <thead><tr><th scope="col">Recorded time (UTC)</th><th scope="col">Code</th><th scope="col">Severity</th><th scope="col">Message</th></tr></thead>
+              <tbody>
+                <tr th:each="alarm : ${detail.alarms}"><td class="timestamp" th:text="${alarm.recordedTime ?: 'Not recorded'}"></td><th scope="row" th:text="${alarm.code ?: 'Not recorded'}"></th><td th:text="${alarm.severity ?: 'Not recorded'}"></td><td th:text="${alarm.message ?: 'Not recorded'}"></td></tr>
+                <tr th:if="${detail.alarms == null or #lists.isEmpty(detail.alarms)}"><td colspan="4" class="empty-state">No alarm history is recorded for this line.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section class="panel" aria-labelledby="signals-heading">
+          <h2 id="signals-heading">Recorded equipment signals</h2>
+          <div class="table-scroll" role="region" aria-label="Recorded equipment signals" tabindex="0">
+            <table>
+              <caption>Last stored samples; not live readings</caption>
+              <thead><tr><th scope="col">Signal</th><th scope="col">Value</th><th scope="col">Unit</th><th scope="col">Recorded time (UTC)</th></tr></thead>
+              <tbody>
+                <tr th:each="signal : ${detail.signals}"><th scope="row" th:text="${signal.name ?: 'Not recorded'}"></th><td th:text="${signal.value ?: 'Not recorded'}"></td><td th:text="${signal.unit ?: '—'}"></td><td class="timestamp" th:text="${signal.recordedTime ?: 'Not recorded'}"></td></tr>
+                <tr th:if="${detail.signals == null or #lists.isEmpty(detail.signals)}"><td colspan="4" class="empty-state">No equipment signals are recorded for this line.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+      <div>
+        <section class="panel" aria-labelledby="checks-heading">
+          <h2 id="checks-heading">Readiness checks</h2>
+          <div class="table-scroll" role="region" aria-label="Recorded readiness checks" tabindex="0">
+            <table>
+              <caption>Recorded checks; not confirmation of current safety</caption>
+              <thead><tr><th scope="col">Check</th><th scope="col">Recorded result</th><th scope="col">Recorded time (UTC)</th></tr></thead>
+              <tbody>
+                <tr th:each="check : ${detail.checks}"><th scope="row" th:text="${check.name ?: 'Not recorded'}"></th><td th:text="${check.result ?: 'Not recorded'}"></td><td class="timestamp" th:text="${check.recordedTime ?: 'Not recorded'}"></td></tr>
+                <tr th:if="${detail.checks == null or #lists.isEmpty(detail.checks)}"><td colspan="3" class="empty-state">No readiness checks are recorded for this line.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section class="panel" aria-labelledby="manuals-heading">
+          <h2 id="manuals-heading">Fictional manual excerpts</h2>
+          <p class="section-note">Reference text for this software demonstration only. Not an equipment operating or safety procedure.</p>
+          <div class="manual-entry" th:each="manual : ${detail.manuals}">
+            <h3 th:text="${manual.title ?: 'Untitled excerpt'}">Untitled excerpt</h3>
+            <p class="manual-reference"><span th:text="${manual.reference ?: 'Reference not recorded'}"></span> &middot; Revision <span th:text="${manual.revision ?: 'not recorded'}"></span></p>
+            <p class="excerpt" th:text="${manual.excerpt ?: 'No excerpt text is recorded.'}">No excerpt text is recorded.</p>
+          </div>
+          <p class="empty-state" th:if="${detail.manuals == null or #lists.isEmpty(detail.manuals)}">No manual excerpts are recorded for this line.</p>
+        </section>
+      </div>
+    </div>
+  </th:block>
+  <section class="panel" th:if="${detail == null or detail.line == null}">
+    <h1>Line record unavailable</h1>
+    <p>No line record was supplied. <a th:href="@{/lines(plant=${plant ?: ''},status=${status ?: ''})}">Return to the line register</a>.</p>
+  </section>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Production lines')}"></head>
+<body class="legacy">
+<header th:replace="~{fragments :: header}"></header>
+<main id="main" class="page" tabindex="-1">
+  <div class="page-heading">
+    <div><p class="eyebrow">Production register</p><h1>Production lines</h1></div>
+    <p class="snapshot">Snapshot (UTC)<br><strong th:text="${snapshotTime ?: 'Not recorded'}">Not recorded</strong></p>
+  </div>
+  <p class="notice">Historical snapshot, not live data. Select a line to review its stored records. Investigation is manual.</p>
+  <section class="panel" aria-labelledby="filter-heading">
+    <h2 id="filter-heading">Find a production line</h2>
+    <form method="get" action="/lines" th:action="@{/lines}" class="filter-form">
+      <div>
+        <label for="plant">Plant</label>
+        <select id="plant" name="plant">
+          <option value="" th:selected="${plant == null or plant == ''}">All four plants</option>
+          <option th:each="p : ${plants}" th:value="${p.code}" th:text="${p.name ?: p.code}" th:selected="${p.code == plant}"></option>
+        </select>
+      </div>
+      <div>
+        <label for="status">Status</label>
+        <select id="status" name="status">
+          <option value="" th:selected="${status == null or status == ''}">All statuses</option>
+          <option value="RUNNING" th:selected="${status == 'RUNNING'}">Running</option>
+          <option value="ATTENTION" th:selected="${status == 'ATTENTION'}">Attention</option>
+          <option value="STOPPED" th:selected="${status == 'STOPPED'}">Stopped</option>
+        </select>
+      </div>
+      <button type="submit">Apply filters</button>
+      <a href="/lines" th:href="@{/lines}">Clear filters</a>
+    </form>
+  </section>
+  <section class="panel register" aria-labelledby="results-heading">
+    <div class="panel-heading">
+      <h2 id="results-heading">Line register</h2>
+      <p><strong th:text="${lines == null ? 0 : #lists.size(lines)}">0</strong> results /
+        <span th:text="${totalLines ?: 160}">160</span> total lines</p>
+    </div>
+    <p class="filter-summary">Current filters:
+      Plant <strong th:text="${plant == null or plant == '' ? 'All' : plant}">All</strong>;
+      Status <strong th:text="${status == null or status == '' ? 'All' : status}">All</strong>.
+      All matching lines are shown.
+    </p>
+    <div class="table-scroll" role="region" aria-label="Production line results" tabindex="0">
+      <table>
+        <caption>Production lines by plant and recorded status</caption>
+        <thead><tr><th scope="col">Line</th><th scope="col">Plant</th><th scope="col">Process</th><th scope="col">Equipment ref.</th><th scope="col">Status</th><th scope="col">Last recorded issue</th><th scope="col">Snapshot (UTC)</th></tr></thead>
+        <tbody>
+          <tr th:each="line : ${lines}">
+            <th scope="row"><a th:href="@{/lines/{id}(id=${line.id},plant=${plant ?: ''},status=${status ?: ''})}" th:text="${line.code ?: 'Open line'}">Open line</a></th>
+            <td th:text="${line.plantName ?: line.plantCode ?: 'Not recorded'}">Not recorded</td>
+            <td th:text="${line.process ?: 'Not recorded'}">Not recorded</td>
+            <td th:text="${line.equipmentReference ?: 'Not recorded'}">Not recorded</td>
+            <td><span class="status" th:classappend="${line.status != null ? line.status.cssClass : ''}" th:text="${line.status != null ? line.status.label : 'Not recorded'}">Not recorded</span></td>
+            <td th:text="${line.lastIssue ?: 'Not recorded'}">Not recorded</td>
+            <td class="timestamp" th:text="${line.snapshotTime ?: 'Not recorded'}">Not recorded</td>
+          </tr>
+          <tr th:if="${lines == null or #lists.isEmpty(lines)}">
+            <td colspan="7" class="empty-state"><strong>No production lines match these filters.</strong> Choose different filters or <a href="/lines" th:href="@{/lines}">Clear filters</a>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <p class="plant-key">Plant codes: NB &mdash; Northbridge; WH &mdash; Westhaven; EM &mdash; Eastmere; SW &mdash; Southwick.</p>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

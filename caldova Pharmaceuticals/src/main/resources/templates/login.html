@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Sign in')}"></head>
+<body class="legacy">
+<header th:replace="~{fragments :: header}"></header>
+<main id="main" class="page login-page" tabindex="-1">
+  <div class="page-heading">
+    <div><p class="eyebrow">Production operations / Internal reference</p><h1>Sign in</h1></div>
+  </div>
+  <p class="notice">Sign in to view the fictional historical records. Operational data is read-only.</p>
+  <p class="notice" role="alert" th:if="${param.error != null}">Sign in failed. Check your username and password, then try again.</p>
+  <p class="notice" role="status" th:if="${param.logout != null}">You have signed out.</p>
+  <section class="panel" aria-labelledby="account-heading">
+    <h2 id="account-heading">Presenter account</h2>
+    <form method="post" action="/login" th:action="@{/login}" class="login-form">
+      <div>
+        <label for="username">Username</label>
+        <input id="username" type="text" name="username" value="presenter" autocomplete="username" required>
+      </div>
+      <div>
+        <label for="password">Password</label>
+        <input id="password" type="password" name="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit">Sign in</button>
+    </form>
+  </section>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Overview')}"></head>
+<body class="legacy">
+<header th:replace="~{fragments :: header}"></header>
+<main id="main" class="page" tabindex="-1">
+  <div class="page-heading">
+    <div><p class="eyebrow">Production operations / Plant summary</p><h1>Overview</h1></div>
+    <p class="snapshot">Snapshot (UTC)<br><strong th:text="${snapshotTime}">2026-11-19 14:20 UTC</strong></p>
+  </div>
+  <p class="notice">Historical snapshot, not live data. All records are fictional and read-only. Investigation is manual.</p>
+  <section class="panel" aria-labelledby="plants-heading">
+    <div class="panel-heading">
+      <h2 id="plants-heading">Production lines by plant</h2>
+      <p><strong th:text="${totalLines}">160</strong> total lines / <a href="/lines" th:href="@{/lines}">Open line register</a></p>
+    </div>
+    <div class="table-scroll" role="region" aria-label="Plant line totals" tabindex="0">
+      <table>
+        <caption>Line totals and recorded status for each plant</caption>
+        <thead><tr><th scope="col">Plant</th><th scope="col">Total</th><th scope="col">Running</th><th scope="col">Attention</th><th scope="col">Stopped</th></tr></thead>
+        <tbody>
+          <tr th:each="p : ${plantSummaries}">
+            <th scope="row"><a th:href="@{/lines(plant=${p.code})}" th:text="${p.name}">Plant</a> (<span th:text="${p.code}">Code</span>)</th>
+            <td class="number" th:text="${p.total}">0</td>
+            <td class="number" th:text="${p.running}">0</td>
+            <td class="number" th:text="${p.attention}">0</td>
+            <td class="number" th:text="${p.stopped}">0</td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(plantSummaries)}"><td colspan="5" class="empty-state">No plant summaries are recorded.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <div class="overview-grid">
+    <section class="panel" aria-labelledby="maintenance-heading">
+      <div class="panel-heading"><h2 id="maintenance-heading">Upcoming maintenance</h2><p><a href="/maintenance" th:href="@{/maintenance}">All maintenance</a></p></div>
+      <div class="table-scroll" role="region" aria-label="Upcoming maintenance" tabindex="0">
+        <table>
+          <caption>Scheduled and in-progress work; dates in UTC</caption>
+          <thead><tr><th scope="col">Line</th><th scope="col">Plant</th><th scope="col">Work</th><th scope="col">Status</th><th scope="col">Planned date (UTC)</th></tr></thead>
+          <tbody>
+            <tr th:each="item : ${upcomingMaintenance}">
+              <th scope="row"><a th:href="@{/lines/{id}(id=${item.lineId})}" th:text="${item.lineCode}">Line</a></th>
+              <td th:text="${item.plantName}">Plant</td>
+              <td th:text="${item.title}">Work</td>
+              <td><span class="status" th:classappend="${item.cssClass}" th:text="${item.statusLabel}">Status</span></td>
+              <td class="date" th:text="${item.plannedDate}">Date</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(upcomingMaintenance)}"><td colspan="5" class="empty-state">No upcoming maintenance is recorded. <a href="/maintenance" th:href="@{/maintenance}">View maintenance history</a>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="shifts-heading">
+      <div class="panel-heading"><h2 id="shifts-heading">Shift staffing summary</h2><p><a th:href="@{/rota(date=${demoDate})}">Open shift rota</a></p></div>
+      <div class="table-scroll" role="region" aria-label="Shift staffing summary" tabindex="0">
+        <table>
+          <caption>Fictional assignments for <span th:text="${demoDate}">2026-11-19</span>; all times UTC</caption>
+          <thead><tr><th scope="col">Plant</th><th scope="col">Shift</th><th scope="col">Hours (UTC)</th><th scope="col">Employees</th></tr></thead>
+          <tbody>
+            <tr th:each="s : ${shiftSummaries}">
+              <th scope="row"><a th:href="@{/rota(plant=${s.plantCode},date=${demoDate})}" th:text="${s.plantName}">Plant</a></th>
+              <td><a th:href="@{/rota(plant=${s.plantCode},date=${demoDate},shift=${s.shiftCode})}" th:text="${s.shiftName}">Shift</a></td>
+              <td class="shift-hours"><span th:text="${s.startTime}">06:00</span>&ndash;<span th:text="${s.endTime}">18:00</span></td>
+              <td class="number" th:text="${s.employees}">0</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(shiftSummaries)}"><td colspan="4" class="empty-state">No shift assignments are recorded for this demo date.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="section-note">Day: 06:00&ndash;18:00 UTC. Night: 18:00&ndash;06:00 UTC on the following day.</p>
+    </section>
+  </div>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

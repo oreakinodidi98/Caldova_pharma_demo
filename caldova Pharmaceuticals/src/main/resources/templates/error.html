@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Request error')}"></head>
+<body class="legacy">
+<header th:replace="~{fragments :: header}"></header>
+<main id="main" class="page error-page" tabindex="-1">
+  <section class="panel error-panel">
+    <p class="eyebrow">Request not completed &middot; HTTP <span th:text="${code ?: status ?: 500}">500</span></p>
+    <h1 th:text="${title ?: error ?: 'Request could not be completed'}">Request could not be completed</h1>
+    <p th:text="${code != null and message != null ? message : 'The requested page could not be displayed. Return to the production lines page or try again.'}">The requested page could not be displayed.</p>
+    <p class="error-actions">
+      <a class="button-link" th:if="${retryUrl != null}" th:href="${retryUrl}">Retry request</a>
+      <a href="/" th:href="@{/}">Return to production lines / correct filters</a>
+    </p>
+    <p class="request-reference" th:if="${requestId != null}">Request reference: <strong th:text="${requestId}"></strong></p>
+  </section>
+  <p class="section-note">No equipment data is shown on this error page.</p>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

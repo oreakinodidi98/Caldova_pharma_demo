@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Shift rota')}"></head>
+<body class="legacy">
+<header th:replace="~{fragments :: header}"></header>
+<main id="main" class="page" tabindex="-1">
+  <div class="page-heading"><div><p class="eyebrow">Production operations / Employee assignments</p><h1>Shift rota</h1></div></div>
+  <p class="notice">Fictional, read-only assignments. All times are UTC. Night shifts end at 06:00 on the following day.</p>
+  <section class="panel" aria-labelledby="filter-heading">
+    <h2 id="filter-heading">Find shift assignments</h2>
+    <form method="get" action="/rota" th:action="@{/rota}" class="filter-form">
+      <div>
+        <label for="plant">Plant</label>
+        <select id="plant" name="plant">
+          <option value="" th:selected="${plant == null or plant == ''}">All four plants</option>
+          <option th:each="p : ${plants}" th:value="${p.code}" th:text="${p.name}" th:selected="${p.code == plant}"></option>
+        </select>
+      </div>
+      <div>
+        <label for="date">Date</label>
+        <input id="date" type="date" name="date" th:value="${date}">
+      </div>
+      <div>
+        <label for="shift">Shift</label>
+        <select id="shift" name="shift">
+          <option value="" th:selected="${shift == null or shift == ''}">Both shifts</option>
+          <option value="DAY" th:selected="${shift == 'DAY'}">Day</option>
+          <option value="NIGHT" th:selected="${shift == 'NIGHT'}">Night</option>
+        </select>
+      </div>
+      <button type="submit">Apply filters</button>
+      <a href="/rota" th:href="@{/rota}">Clear filters</a>
+    </form>
+    <p class="section-note">Demo dates: 2026-11-19 to 2026-11-21. Clear filters returns to the fixed demo date, 2026-11-19.</p>
+  </section>
+  <section class="panel register" aria-labelledby="results-heading">
+    <div class="panel-heading"><h2 id="results-heading">Employee shift assignments</h2><p><strong th:text="${#lists.size(assignments)}">0</strong> results</p></div>
+    <p class="filter-summary">Current filters: Plant <strong th:text="${plant == null or plant == '' ? 'All' : plant}">All</strong>; Date <strong th:text="${date}">2026-11-19</strong>; Shift <strong th:text="${shift == null or shift == '' ? 'Both' : shift}">Both</strong>. All matching assignments are shown.</p>
+    <div class="table-scroll" role="region" aria-label="Shift assignment results" tabindex="0">
+      <table>
+        <caption>Fictional employee assignments; dates and times in UTC</caption>
+        <thead><tr><th scope="col">Employee code</th><th scope="col">Employee</th><th scope="col">Role</th><th scope="col">Plant</th><th scope="col">Date (UTC)</th><th scope="col">Shift</th><th scope="col">Hours (UTC)</th></tr></thead>
+        <tbody>
+          <tr th:each="entry : ${assignments}">
+            <th scope="row" th:text="${entry.employeeCode}">Code</th>
+            <td th:text="${entry.employeeName}">Employee</td>
+            <td th:text="${entry.role}">Role</td>
+            <td><span th:text="${entry.plantName}">Plant</span> (<span th:text="${entry.plantCode}">Code</span>)</td>
+            <td class="date" th:text="${entry.date}">Date</td>
+            <td th:text="${entry.shiftName}">Shift</td>
+            <td class="shift-hours"><span th:text="${entry.startTime}">06:00</span>&ndash;<span th:text="${entry.endTime}">18:00</span></td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(assignments)}"><td colspan="7" class="empty-state"><strong>No shift assignments match these filters.</strong> Choose different filters or <a href="/rota" th:href="@{/rota}">Clear filters</a>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <p class="plant-key">16 fictional employees, four per plant. The demo contains 48 assignments across three days, with two employees per shift per plant.</p>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

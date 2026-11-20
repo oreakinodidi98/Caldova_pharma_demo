@@ -1,0 +1,37 @@
+server:
+  address: ${SERVER_ADDRESS:127.0.0.1}
+  port: 8080
+  servlet:
+    session:
+      timeout: 20m
+      tracking-modes: cookie
+      cookie:
+        http-only: true
+        same-site: lax
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-binding-errors: never
+spring:
+  application:
+    name: caldova-production-demo
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:oracle:thin:@localhost:1521/FREEPDB1}
+    username: ${SPRING_DATASOURCE_USERNAME:CALDOVA_READ}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: oracle.jdbc.OracleDriver
+    hikari:
+      maximum-pool-size: 4
+      minimum-idle: 0
+      connection-timeout: 3000
+      validation-timeout: 2000
+      initialization-fail-timeout: -1
+      data-source-properties:
+        oracle.net.CONNECT_TIMEOUT: 3000
+        oracle.jdbc.ReadTimeout: 5000
+  jdbc:
+    template:
+      query-timeout: 5
+  sql:
+    init:
+      mode: never

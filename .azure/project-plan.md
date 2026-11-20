@@ -2,19 +2,24 @@
 
 **Status**: Planning
 **Created**: 2026-11-20
-**Mode**: NEW
+**Mode**: AUGMENT
+
+**Application Folder**: `caldova Pharmaceuticals`
+**Runtime Verification**: Local image inspection on 2026-11-20 confirms ARM64 images for `gvenzl/oracle-free:23.26.0-slim`, `maven:3.9.9-eclipse-temurin-8`, and `eclipse-temurin:8-jre`. Use these existing Java 8 containers without changing the host Java installation.
+**Implementation**: Extend the existing JAR with an overview home page, read-only maintenance and employee rota sections, and Oracle-backed presenter sign-in. Preserve the legacy interface and leave modernisation out of scope.
+**Validation**: This turn checks planning artifacts and local prerequisites only. Existing source files already contain parts of the extension; their presence does not prove that the extension works. After plan approval, validate and complete those files rather than overwrite them.
 
 ---
 
 ## 1. Project Overview
 
-**Goal**: Build the fictional Caldova Pharmaceuticals legacy production line demo. Deliver one on-premises Java 8 and Spring Boot 2.7.18 monolith backed by Oracle Database, with a 2008-era browser interface and a read-only manual investigation workflow. The project is designed so that every module is independently testable.
+**Goal**: Extend the fictional Caldova Pharmaceuticals legacy demo with an overview, maintenance section, employee shift rota, and presenter sign-in. Retain one on-premises Java 8 and Spring Boot 2.7.18 monolith backed by Oracle, with a 2008-era interface and read-only operational workflows. The project is designed so that every module is independently testable.
 
 **App Type**: Full-stack SSR
 
-**API Login**: No
+**API Login**: Yes
 
-**Mode**: NEW
+**Mode**: AUGMENT
 
 **Deployment Plan**: No deployment plan found. Run locally on the presenter's machine. Azure deployment is not part of this plan.
 
@@ -33,13 +38,13 @@ Out of scope: operator edits, saved notes, alarm acknowledgement, readiness upda
 | **Language** | Java 8 |
 | **Runtime** | JVM |
 | **Framework** | Spring Boot 2.7.18 |
-| **Package Manager** | Maven; commit a pinned Maven Wrapper during scaffolding |
+| **Package Manager** | Existing pinned Maven Wrapper; container Maven 3.9.9 |
 | **Test Runner** | JUnit 5 with Spring Boot Test; Maven Surefire and Failsafe |
 | **Mocking Library** | Mockito, using the version managed by Spring Boot 2.7.18 |
-| **Test Command** | `.\mvnw.cmd verify` on Windows; `./mvnw verify` on Linux |
+| **Test Command** | `.\scripts\verify-demo.ps1`; optional host `.\mvnw.cmd verify` with Java 8 and the documented Oracle environment |
 | **Orchestration** | docker-compose |
 
-Use Spring MVC, Thymeleaf, Bean Validation, and Spring JDBC with the Boot-managed connection pool. Use an Oracle `ojdbc8` release verified to support both Java 8 and the chosen Oracle server. Pin that version during scaffolding. Do not select a driver that needs Java 11 or later. Do not introduce a separate JavaScript application, REST service, or Node toolchain.
+Use the existing Spring MVC, Thymeleaf, and Spring JDBC path with the Boot-managed connection pool. Retain the pinned `ojdbc8` 19.25.0.0 dependency and verify it on Java 8 against the existing Oracle server. Do not select a driver that needs Java 11 or later. Do not introduce a separate JavaScript application or REST service. Node and npm are browser-test tools only, not application dependencies.
 
 Keep controller, service, and repository responsibilities separate. Controllers validate query values and select views. Services apply filtering and map records into view models. Repositories use bound SQL parameters. Escape all text through Thymeleaf, including manual excerpts; never render stored HTML.
 
@@ -57,6 +62,16 @@ Data model:
 | Equipment signal | `signal_id`; `line_id` foreign key | Signal name, recorded value, unit, recorded timestamp; no live update |
 | Readiness check | `check_id`; `line_id` foreign key | Check name, recorded result, recorded timestamp; no editable checkbox |
 | Manual excerpt | `excerpt_id`; `line_id` foreign key | Fictional document reference, title, revision, plain-text excerpt |
+| Maintenance work | `work_id`; `line_id` foreign key | Scheduled date, title, status, completed date, and fictional maintenance history |
+| Employee | `employee_id`; `plant_id` foreign key | Fictional code, name, and role; 16 records, four per plant |
+| Shift assignment | `assignment_id`; employee foreign key | Demo date, DAY or NIGHT shift; 48 assignments across 2026-11-19 to 2026-11-21 |
+| Application user | `username` primary key | BCrypt password hash and enabled flag; one presenter account, separate from Oracle database users |
+
+Use Spring Security form sign-in and server-side browser sessions. Require sign-in for overview, line register/details, maintenance, and rota. Keep only the sign-in page, local CSS, safe errors, and minimal readiness endpoint public. Use POST with CSRF protection for sign-in and sign-out; do not allow operational writes. Store no plaintext password in Oracle. Generate presenter credentials in the ignored local environment file, create the account only during explicit setup, and preserve it during demo-data reset. Do not add public registration, password recovery, or employee-specific accounts.
+
+Add versioned Oracle tables to the existing `FREEPDB1` database and `CALDOVA_OWNER` schema rather than provisioning another database server. Grant the runtime account SELECT access only. Use additive migrations; preserve existing line IDs and operational records. Seed 12 maintenance records and 16 fictional employees with two shifts per demo day. DAY runs 06:00-18:00 UTC; NIGHT runs 18:00-06:00 UTC on the next day. The default demo day is 2026-11-19, not the machine's current date.
+
+Rollback: stop the new app and run the prior JAR after setting the former page routes. The additive tables can remain unused; do not delete the Oracle volume or account records. Database and application rollback must be coordinated if routes or sign-in behavior change.
 
 Keep identifiers compatible with Java 8 and Oracle. Use foreign keys, explicit column types, and status constraints. Avoid reserved identifiers and SQL syntax from a different database. Order overview rows by plant code then line code, and alarm history by timestamp then ID. Display all timestamps with an explicit UTC label.
 
@@ -72,11 +87,11 @@ The repeatable dataset contains 124 Running, 24 Attention, and 12 Stopped lines:
 | **Rendering** | Server-rendered HTML with GET forms and normal links |
 | **Styles** | Locally bundled Pico.css, with scoped legacy-theme overrides |
 | **Browser behavior** | No JavaScript required for filters, navigation, or manual excerpts |
-| **Validation** | Spring MVC HTML integration tests and a desktop browser keyboard check |
+| **Validation** | Existing Spring MVC/Oracle functional tests and Playwright browser tests |
 
 There is no independent frontend service, package manager, or deployment. Bundle all CSS with the JAR; no CDN or remote fonts. Use native HTML tables, labelled select controls, buttons, headings, and links. Keep filters in the query string so pages can be bookmarked.
 
-The overview shows the complete filtered result, up to 160 rows, without pagination. Show the total result count and current filters. A line link preserves plant and status filters for the return link. Validate return-filter values rather than accepting an arbitrary redirect URL.
+The home overview shows per-plant line totals, upcoming maintenance, and the demo day's shift summary. Move the complete filtered line register to `/lines`, retaining all 160 rows without pagination. A line link preserves plant and status filters for its return link. Maintenance filters by plant and work status; rota filters by plant, ISO date, and shift. Empty results are explicit, not fabricated records.
 
 An empty result is a successful page with a clear message and a Clear filters link. An unknown line returns a 404 page. Invalid filters return a 400 page with a correction link. An Oracle failure returns a 503 page with a Retry link, not an empty table or a healthy status. Log a request reference and safe context; never display connection strings, SQL, stack traces, or credentials.
 
@@ -87,11 +102,12 @@ An empty result is a successful page with a clear message and a Clear filters li
 | Azure Service | Role in App | Environment Variable | Default Value (Local) | Classification |
 |---------------|------------|---------------------|----------------------|----------------|
 | None - Oracle Database Free, local Linux container | Real Oracle datastore for the legacy demo; not an emulator or Azure service | `SPRING_DATASOURCE_URL` | `jdbc:oracle:thin:@localhost:1521/FREEPDB1` | Essential |
-| None - Oracle read account | Read-only access for application queries | `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` | Required local values; no password default | Essential |
-| None - Oracle setup account | Local schema creation and repeatable dataset setup; never used for application requests | `ORACLE_SETUP_USER`, `ORACLE_SETUP_PASSWORD` | Required local values; no password default | Essential |
+| None - Oracle read account | Read-only access for application queries | `CALDOVA_READ_PASSWORD`; mapped to `SPRING_DATASOURCE_PASSWORD` | Runtime user `CALDOVA_READ`; no password default | Essential |
+| None - Oracle setup account | Local schema creation and repeatable dataset setup; never used for application requests | `CALDOVA_OWNER_PASSWORD`; test-only `ORACLE_SETUP_USER`, `ORACLE_SETUP_PASSWORD` | Owner `CALDOVA_OWNER`; no password default | Essential |
 | None - Oracle container bootstrap | Initialise the local container according to its verified image contract | `ORACLE_PWD` | Required local value; no password default | Essential |
+| None - Local presenter setup | Create and verify the Oracle application-user password hash during setup | `PRESENTER_PASSWORD` | Generated in ignored `.env`; never committed or sent to the application container | Essential |
 
-Use one named volume, `caldova-oracle-data`, for Oracle persistence. Select and pin the Oracle Free container image only after checking its published CPU architecture, environment variables, health check, and database service name. The detected host is Windows ARM64. Do not assume that a Linux AMD64 Oracle image will run on it. If an ARM64 image is unavailable, verify supported AMD64 emulation before proceeding. Any required change to a VM or existing Oracle instance needs user agreement.
+Use the existing named volume, `caldova-oracle-data`, and pinned `gvenzl/oracle-free:23.26.0-slim` image with service `FREEPDB1`. Local inspection confirms the existing image is ARM64. Preserve the current image, health check, and credentials. A switch to a VM or another Oracle instance needs user agreement.
 
 Use Docker with `docker compose` as confirmed in the requirements. Bind application HTTP and the Oracle listener to loopback only, using ports 8080 and 1521 after checking that they are free. Do not expose the demo to a shared network without a separate access-control decision.
 
@@ -107,12 +123,12 @@ Read-only detection ran on 2026-11-20. Installed tools are marked with a check. 
 
 | Tool | Service(s) | Installed | Version |
 |------|------------|-----------|---------|
-| Java 8 JDK | caldova-monolith | ❓ | Java and javac 17.0.18 detected; Java 8 was not found in PATH or the checked JDK folders |
-| Maven | caldova-monolith | ✅ | 3.9.15; currently uses Java 17.0.18 |
+| Java 8 container toolchain | caldova-monolith | ✅ | Local ARM64 Maven/Temurin 8 build image and Temurin 8 JRE image found; Java execution not checked this turn |
+| Maven container | caldova-monolith | ✅ | Local `maven:3.9.9-eclipse-temurin-8` image found; host Maven is not needed |
 | Docker engine with Linux containers | caldova-monolith | ✅ | Client 29.9.3; reachable Linux engine 29.9.3 |
 | Docker Compose | caldova-monolith | ✅ | v5.7.0 |
-| Microsoft Edge | caldova-monolith | ✅ | 157.0.4341.60 |
-| Oracle Free image compatible with this host | caldova-monolith | ❓ | Windows ARM64 host detected; image architecture and runtime compatibility not yet verified |
+| PowerShell | caldova-monolith | ✅ | 7.7.0 |
+| Oracle Free image | caldova-monolith | ✅ | Existing local `gvenzl/oracle-free:23.26.0-slim`, ARM64; database readiness not checked this turn |
 
 ### Debug
 
@@ -121,12 +137,14 @@ Read-only detection ran on 2026-11-20. Installed tools are marked with a check. 
 | Docker engine with Linux containers | caldova-monolith | ✅ | Reachable Linux engine 29.9.3 |
 | Docker Compose | caldova-monolith | ✅ | v5.7.0 |
 | Microsoft Edge | caldova-monolith | ✅ | 157.0.4341.60 |
+| Node.js, browser tests only | caldova-monolith | ✅ | 26.13.0; project requires 22 or newer |
+| npm, browser tests only | caldova-monolith | ✅ | 11.20.0 |
 | `redhat.java` | caldova-monolith | ❓ | Not confirmed in the checked VS Code extension folder |
 | `vscjava.vscode-java-debug` | caldova-monolith | ❓ | Not confirmed in the checked VS Code extension folder |
 
 Confirm all question-mark requirements before implementation or startup. Configure Maven, tests, and the application launch to use Java 8; compilation under Java 17 alone does not prove Java 8 runtime compatibility. A Java language-server extension may need a separate newer JDK. Keep its tooling runtime separate from the Java 8 application runtime.
 
-Docker is a Run prerequisite because the selected local datastore runs in a container. Detection did not pull an image, start a container, change any runtime, or install software.
+Docker is a Run prerequisite because the selected local datastore runs in a container. Detection did not pull an image, start a container, change any runtime, or install software. It does not prove application or database readiness.
 
 ---
 
@@ -155,8 +173,14 @@ Use white for table panels. Use `#356348` for Running text and a pale green badg
 
 | Page | Route | Purpose | Layout |
 |------|-------|---------|--------|
-| Production Lines | `/` | Filter 160 lines across four plants and open a line for manual investigation | `header + nav + main + form + table + footer` |
+| Sign In | `/login` | Basic username/password form for the presenter account | `header + main + form + footer` |
+| Overview | `/` | Plant/line totals, upcoming maintenance, and shift staffing summary | `header + nav + main + table + two-column(table+table) + footer` |
+| Production Lines | `/lines` | Filter 160 lines across four plants and open a line for manual investigation | `header + nav + main + form + table + footer` |
 | Line Detail | `/lines/{lineId}` | Read a line's alarms, recorded signals, readiness checks, and fictional manual excerpts | `header + nav + action-bar + main + two-column(table+list) + footer` |
+| Maintenance | `/maintenance` | Read scheduled work and completed maintenance history, with line links | `header + nav + main + form + table + footer` |
+| Shift Rota | `/rota` | Read fictional employee assignments by plant, date, and shift | `header + nav + main + form + table + footer` |
+
+Navigation uses plain intranet tabs labelled Overview, Production lines, Maintenance, and Shift rota. Show the signed-in presenter and a Sign out POST form. The sign-in page uses the same cream/red theme without exposing protected navigation. Preserve visible focus, labels, status text, and locally bundled assets.
 
 Keep the main pages populated in planning previews. Under a clearly marked Preview states disclosure, depict a loading placeholder, a no-matching-lines result, and a database-unavailable banner with a Retry link. These are separate examples, not simultaneous live faults. The real server-rendered application shows loading through normal browser navigation; it does not need artificial delays or a state-switcher control.
 
@@ -175,6 +199,39 @@ Production Lines - representative rows:
 | 41 | WH-001 | Westhaven | Bottle labelling | Attention | ALM-118: Label registration variation |
 | 81 | EM-001 | Eastmere | Secondary packaging | Running | No active alarm recorded |
 | 121 | SW-001 | Southwick | Case packing | Stopped | ALM-307: Outfeed accumulation |
+
+Overview - plant totals for the fixed snapshot:
+
+| Plant | Lines | Running | Attention | Stopped | DAY / NIGHT employees |
+|-------|-------|---------|-----------|---------|-----------------------|
+| Northbridge | 40 | 31 | 6 | 3 | 2 / 2 |
+| Westhaven | 40 | 31 | 6 | 3 | 2 / 2 |
+| Eastmere | 40 | 31 | 6 | 3 | 2 / 2 |
+| Southwick | 40 | 31 | 6 | 3 | 2 / 2 |
+
+Show overall totals of 160 lines, 124 Running, 24 Attention, and 12 Stopped. The snapshot has four scheduled jobs, four in-progress jobs, and four completed jobs. Show the four scheduled condition checks dated 2026-11-20 as upcoming work.
+
+Maintenance - representative records from the versioned dataset:
+
+| Line | Title | Planned date | Status | Completed date |
+|------|-------|--------------|--------|----------------|
+| NB-001 | Recorded equipment inspection | 2026-11-18 | Completed | 2026-11-18 |
+| NB-002 | Planned service review | 2026-11-19 | In progress | None |
+| NB-003 | Scheduled condition check | 2026-11-20 | Scheduled | None |
+| WH-003 | Scheduled condition check | 2026-11-20 | Scheduled | None |
+
+Show scheduled work and completed history separately within this read-only page. Line detail also shows that line's maintenance records.
+
+Shift Rota - representative assignments for 2026-11-19:
+
+| Employee code | Fictional employee | Plant | Role | Shift |
+|---------------|--------------------|-------|------|-------|
+| NB-EMP001 | Avery Cole | Northbridge | Shift lead | DAY |
+| NB-EMP002 | Blair Reed | Northbridge | Line operator | DAY |
+| NB-EMP003 | Casey Gray | Northbridge | Shift lead | NIGHT |
+| NB-EMP004 | Drew Lane | Northbridge | Line operator | NIGHT |
+
+Sign In - username: presenter; password: blank. Never put real credentials or password hashes in a preview. Show a generic failed-sign-in example without identifying whether the username exists.
 
 For NB-001, show three alarm records:
 
@@ -217,50 +274,62 @@ Do not provide machine restart steps, bypass instructions, or claims that a reco
 ```text
 caldova_pharma_demo\
   README.md
-  pom.xml
-  mvnw
-  mvnw.cmd
-  .mvn\wrapper\
-  .env.example
-  compose.yaml
-  scripts\
-    setup-demo.ps1
-    reset-demo.ps1
-  src\
-    main\
-      java\com\caldova\production\
-        CaldovaApplication.java
-        controller\
-        service\
-        repository\
-        model\
-      resources\
-        application.yml
-        db\oracle\
-          V001__schema.sql
-          V002__fictional_demo_data.sql
-          reset-demo.sql
-        templates\
-          fragments\
-          lines.html
-          line-detail.html
-          error\
-        static\css\
-          pico.min.css
-          legacy.css
-    test\
-      java\com\caldova\production\
-        service\
-        integration\
-      resources\
-  .github\workflows\validate-demo.yml
   .azure\
     requirements.json
     project-plan.md
     .preview-temp\
+  .github\workflows\validate-demo.yml
+  caldova Pharmaceuticals\
+    pom.xml
+    mvnw
+    mvnw.cmd
+    .mvn\wrapper\
+    .env.example
+    compose.yaml
+    scripts\
+      start-demo.ps1
+      verify-demo.ps1
+      reset-demo.ps1
+      check-persistence.ps1
+      stop-demo.ps1
+    browser-tests\
+    src\
+      main\
+        java\com\caldova\production\
+          CaldovaApplication.java
+          controller\
+          service\
+          repository\
+          model\
+          security\
+          setup\
+        resources\
+          application.yml
+          db\oracle\
+            V001__schema.sql
+            V002__fictional_demo_data.sql
+            V003__operations_and_accounts.sql
+            V004__operations_demo_data.sql
+            setup.sql
+            reset-demo.sql
+          templates\
+            fragments.html
+            lines.html
+            line-detail.html
+            overview.html
+            maintenance.html
+            rota.html
+            login.html
+            error.html
+          static\css\
+            pico-2.1.1.min.css
+            legacy.css
+      test\
+        java\com\caldova\production\
+        resources\
 ```
 
-This is the proposed structure, not an inventory of implemented files. Scaffolding must preserve the existing documentation and instructions. Do not create a second top-level application or commit local credentials.
+Place the application files shown above inside `caldova Pharmaceuticals`, as requested at approval. Keep the canonical plan and repository workflow at the repository root. Preserve the existing documentation and instructions. Do not create a second deployable application or commit local credentials.
 
 ---
 
@@ -268,12 +337,18 @@ This is the proposed structure, not an inventory of implemented files. Scaffoldi
 
 | # | Method | Path | Description | Request Body | Response Body | Status Codes |
 |---|--------|------|-------------|--------------|---------------|--------------|
-| 1 | GET | `/` | Overview; optional `plant` code and `status` enum filters | None | HTML with plant options, selected filters, result count, snapshot time, and line table or empty message | 200, 400, 503 |
-| 2 | GET | `/lines/{lineId}` | Line details; optional validated plant/status return filters | None | HTML with line metadata, alarm history, recorded signals, readiness checks, manual excerpts, and return link | 200, 400, 404, 503 |
+| 1 | GET | `/` | Authenticated overview totals, upcoming maintenance, and shift summary | None | Overview HTML | 200, 302, 503 |
+| 2 | GET | `/lines/{lineId}` | Line details; optional validated plant/status return filters | None | HTML with line metadata, alarms, signals, checks, manual excerpts, maintenance, and return link | 200, 302, 400, 404, 503 |
 | 3 | GET | `/api/health` | Readiness check with a bounded Oracle query | None | JSON: `{"status":"UP","services":{"oracle":"UP"}}` or `{"status":"DOWN","services":{"oracle":"DOWN"}}` | 200, 503 |
 | 4 | GET | `/css/{asset}` | Bundled static CSS | None | CSS | 200, 404 |
+| 5 | GET | `/lines` | Authenticated line register; optional plant and line-status filters | None | Existing register HTML | 200, 302, 400, 503 |
+| 6 | GET | `/maintenance` | Authenticated maintenance; optional plant and work-status filters | None | Maintenance HTML or empty result | 200, 302, 400, 503 |
+| 7 | GET | `/rota` | Authenticated rota; optional plant, ISO date, and DAY/NIGHT shift filters | None | Rota HTML or empty result | 200, 302, 400, 503 |
+| 8 | GET | `/login` | Public sign-in form and generic failure/signed-out notices | None | Sign-in HTML with CSRF field | 200 |
+| 9 | POST | `/login` | Verify Oracle presenter account and create a session | Form username, password, CSRF token | Redirect on success or bad credentials; safe unavailable response on Oracle failure | 302, 403, 503 |
+| 10 | POST | `/logout` | End the session | CSRF token | Redirect to sign-in | 302, 403 |
 
-Allowed line statuses are `RUNNING`, `ATTENTION`, and `STOPPED`. Missing filters mean all plants or all statuses; empty values from the All options mean the same. Reject other values with 400. A valid filter combination with no matches returns 200. Malformed or nonpositive line IDs return 400; valid IDs that are not present return 404. Reject unsupported mutation methods. No user-data write routes are included.
+Allowed line statuses are `RUNNING`, `ATTENTION`, and `STOPPED`; maintenance statuses are `SCHEDULED`, `IN_PROGRESS`, and `COMPLETED`. Missing filters mean all plants or statuses; missing rota date means 2026-11-19. Reject invalid filters/dates with 400. Valid empty results return 200. Malformed/nonpositive line IDs return 400; absent positive IDs return 404. Anonymous page requests redirect to sign-in. Operational mutation methods remain rejected; sign-in and sign-out are the only POST routes.
 
 ---
 
@@ -296,3 +371,5 @@ Allowed line statuses are `RUNNING`, `ATTENTION`, and `STOPPED`. Missing filters
 8. Use **azure-debug-plan** and **azure-debug-generate** only for local Java debugging and the chosen Oracle container. Never auto-start Docker resources or change shared environment settings during planning. Check port availability and keep all listeners local.
 
 9. Stop after the legacy demo is verified. Azure deployment, infrastructure generation, database migration, and AI features require a separate request and plan.
+
+After approval, also verify real Oracle sign-in, bad and disabled credentials, anonymous redirects, CSRF rejection, logout/session invalidation, maintenance and rota filters, overview aggregate totals, additive migration repeatability, and password/record persistence across Oracle restart. Update the existing browser journeys, weekly workflow, and application README before marking the extension complete. The README currently excludes sign-in; change that statement when the authenticated flow is verified.
