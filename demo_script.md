@@ -148,11 +148,104 @@ The modernisation workflow triggers `ci.yml` against the modernisation branch.
 
 > The modernisation result is not merged automatically. It is validated through the normal build and test workflow, then reviewed as a PR.
 
-### 7. Close with the point of the demo
+### 7. Add a human check before execution
+
+**Action:** After showing the autonomous **Continuous modernization** workflow,
+open [Reviewed modernization](.github/workflows/reviewed-modernization.yml).
+Show the `plan`, `execute`, and `publish` jobs, and the `modernization-review`
+environment on the execution job.
+
+**Say:** "The first workflow creates and applies a plan without waiting for a
+person to approve that plan. We review its code and tests at the pull request.
+Now we add a human check earlier: the agent assesses the application and creates
+a plan, but it must wait for our approval before it changes application files.
+We still review the code and test results before merge."
+
+**Show:** The separate `modernize assess`, `modernize plan create`, and
+`modernize plan execute` commands. The reviewed workflow installs CLI version
+`1.0.95`. It runs on Tuesdays at 10:00 UTC or on demand from the default branch.
+Its default goal upgrades Java while keeping Oracle and application behaviour.
+
+#### Check the approval setup before the demo
+
+**Action:** Open **Settings → Environments → modernization-review**. Complete
+these checks before starting a live reviewed run:
+
+1. Confirm that the GitHub plan supports **Required reviewers** for this
+    repository. On GitHub Free, Pro, and Team, reviewers are available only for
+    public repositories. Private or internal repositories require GitHub
+    Enterprise. See
+    [GitHub's required-reviewer rules](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments#required-reviewers).
+2. Open the existing environment, or create it if absent. As the repository
+    owner or an administrator, select **Required reviewers**, add the presenter,
+    and select **Save protection rules**. Leave **Prevent self-review** off for
+    this demo. If it is on, another configured reviewer must approve your run.
+    Disable administrator bypass and restrict the environment to the default
+    branch.
+3. Confirm that the repository Actions secret `GH_TOKEN` and the environment
+    secret `MODERNIZE_EXECUTE_TOKEN` provide Copilot access without repository
+    write access. Enter secrets directly in GitHub; do not show their values.
+4. In **Settings → Actions → General**, allow GitHub Actions to create pull
+    requests. The publish job uses the built-in GitHub token.
+
+**Say:** "GitHub may have created this environment when we first ran the
+workflow. We can configure it now; we do not need to delete it. A stored token
+does not create an approval requirement. The required-reviewer rule does."
+
+**If Required reviewers is missing:** Keep the environment and its secret.
+Check your administrator access, repository visibility, and the owner's GitHub
+plan. Deleting and recreating the environment deletes its secrets and does not
+unlock reviewer controls. If the plan does not support reviewers, do not start
+a live execution demo. Explain that a supported plan or a separately agreed
+manual approval design is needed. The alternative is not implemented here;
+do not remove the approval check or make private code public to continue.
+The [repository setup guide](README.md#run-a-reviewed-modernisation) has the
+setup and recovery steps.
+
+#### Run, review, and approve the plan
+
+1. In **Actions → Reviewed modernization**, select **Run workflow** on the
+    default branch. Select a model available to your Copilot account. For an
+    example goal, enter `Upgrade to Java 21. Keep Oracle and preserve application behaviour.`
+    Do not enter secrets or sensitive data. Start a new run rather than using
+    **Re-run failed jobs**; this workflow rejects reruns.
+2. After the plan job completes, open the run summary and download the
+    `modernization-review` artifact. Review the assessment, `plan.md`, and
+    `tasks.json` against the source commit. Check scope, Java and Spring Boot
+    compatibility, Oracle access, and the proposed tests. Files remain available
+    for 14 days.
+3. Show the execution job waiting for approval. In the run, select
+    **Review deployments**, select `modernization-review`, then select
+    **Approve and deploy** only if the plan is acceptable. Reject an unacceptable
+    plan and start a new run with a revised goal.
+4. After approval, show the execution log. The CLI applies the saved plan to
+    the same source commit; it does not create a replacement plan. The workflow
+    checks for a recorded approval before it runs the CLI.
+5. If application files changed, show the `modernize-reviewed-<run_id>-<attempt>`
+    branch and draft pull request. The publish job requests
+    [legacy demo validation](.github/workflows/validate-demo.yml) on that branch,
+    rather than the autonomous workflow's build-and-test dispatch. Open the
+    validation run and review its actual results. No application changes means
+    no branch or pull request.
+
+**Say:** "Approve and deploy is GitHub's button name. Here it allows the
+modernisation job to run; it does not deploy the application to Azure. We approve
+the proposed scope first. Then we review what the agent changed and check the
+tests. Neither plan approval nor a request to start validation proves the code
+is ready to merge. The workflow does not merge the pull request."
+
+**If execution fails with `No approval was found`:** Check and save the
+required-reviewer rule on the existing environment. If unavailable, resolve the
+plan restriction before continuing. Start a fresh run with **Run workflow**,
+review the new artifact, and approve the waiting job. Adding the execution
+secret or changing settings cannot add approval to the previous failed run.
+Show the failure accurately; do not imply that execution or publication passed.
+
+### 8. Close with the point of the demo
 
 **Action:** Return to the app or the continuous-modernisation workflow.
 
-**Say:** “The legacy application is the starting point, not the end state. First, we understand and validate what exists. Then we can make smaller, reviewed changes as part of how we plan, build, review, ship, and operate software. That creates a foundation for the future database migration and capabilities such as AI-assisted troubleshooting.”
+**Say:** “The legacy application is the starting point, not the end state. First, we understand and validate what exists. The autonomous workflow proposes changes for pull request review. The human-in-the-loop workflow also requires approval of the plan before execution. Both keep the merge decision with people. This makes modernisation part of how we plan, build, review, ship, and operate software, and creates a foundation for future database migration and AI-assisted troubleshooting.”
 
 To stop without deleting data, run `.\scripts\stop-demo.ps1` from the same application folder. Keep `.env` with the database volume; do not share or commit it. See the [run guide](./caldova%20Pharmaceuticals/README.md) for tests, reset commands, and error recovery. This old stack is a local demo only; do not expose it to a shared network.
 

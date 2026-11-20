@@ -95,19 +95,57 @@ or on demand from the default branch. The scheduled run uses `claude-sonnet-5`.
 It plans an upgrade to the latest supported Java version while keeping Oracle
 and preserving application behaviour.
 
+**Continuous modernization** runs without a plan approval gate; a person reviews
+the resulting pull request before merge. **Reviewed modernization** adds a human
+check before the CLI changes application files. Its three jobs create the plan,
+execute the approved plan, and publish the result. Plan approval does not replace
+code review or passing tests.
+
 **Set up the repository once:**
 
-1. In **Settings → Secrets and variables → Actions**, set the repository secret
+1. Check that the repository owner's GitHub plan supports environment required
+   reviewers. On GitHub Free, Pro, and Team, this feature is available only for
+   public repositories. Private or internal repositories require GitHub
+   Enterprise. Environment secrets and branch restrictions can be available
+   even when required reviewers are not. See
+   [GitHub's required-reviewer rules](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments#required-reviewers).
+2. In **Settings → Secrets and variables → Actions**, set the repository secret
    `GH_TOKEN` to a token authorised for Copilot. Do not grant repository write
    access to this token.
-2. In **Settings → Environments**, create `modernization-review`. Add the
-   presenter as a required reviewer. Leave **Prevent self-review** off for
-   this demo. Disable administrator bypass and restrict the environment to the
+3. In **Settings → Environments**, open `modernization-review` if it exists;
+   otherwise, create it. The repository owner or an administrator must configure
+   it. Under deployment protection rules, select **Required reviewers**, add the
+   presenter, and select **Save protection rules**. Leave **Prevent self-review**
+   off for this demo. If it is on, another configured reviewer must approve a run
+   you start. Disable administrator bypass and restrict the environment to the
    default branch. Add an environment secret named `MODERNIZE_EXECUTE_TOKEN`
-   for Copilot access after approval. Do not grant it repository write access.
-3. In **Settings → Actions → General**, allow GitHub Actions to create pull
+   for Copilot access after approval. Enter its value directly in GitHub; do not
+   grant it repository write access.
+4. In **Settings → Actions → General**, allow GitHub Actions to create pull
    requests. The publish job uses the built-in GitHub token to push the result
    branch and open a draft pull request.
+
+**If the environment exists but Required reviewers is missing:**
+
+1. Keep the existing environment. A workflow can create it automatically without
+   protection rules or secrets. You can configure it later. Deleting it also
+   deletes `MODERNIZE_EXECUTE_TOKEN`; recreating it does not change feature
+   availability.
+2. Confirm that you are the repository owner or have administrator access.
+   Check the repository visibility and the owner's GitHub plan against the
+   required-reviewer rules above.
+3. If your plan supports the feature, configure and save the required reviewer
+   on the existing environment. Adding a secret alone does not require approval
+   or create an approval record.
+4. If your plan does not support the feature, use a supported plan or agree on a
+   separate manual approval design before changing the workflow. That alternative
+   is not implemented here. Do not make a private repository public unless its
+   contents are approved for public release. Do not remove the approval check
+   to make the run pass.
+5. After setup, select **Run workflow** to start a new run, not **Re-run failed
+   jobs**. The workflow rejects reruns and stops before CLI execution when no
+   approval is recorded. A previous failed run cannot receive approval after
+   the fact.
 
 **Run and review:**
 
@@ -118,9 +156,12 @@ and preserving application behaviour.
 2. The CLI assesses the application. It uses the assessment to create a plan.
    The workflow adds a download link to the run summary.
 3. Download the assessment, `plan.md`, and `tasks.json`. Check the scope,
-   target Java version, Oracle compatibility, and tests. In the run, select
-   **Review deployments**. Approve the job only if the plan is acceptable.
-   If you reject it or need a different plan, start a new run.
+   target Java version, Oracle compatibility, and tests. The execution job waits
+   for the configured reviewer. In the run, select **Review deployments**, select
+   `modernization-review`, then select **Approve and deploy** only if the plan
+   is acceptable. This button releases the execution job; it does not deploy
+   the application to Azure. If you reject it or need a different plan, start
+   a new run with **Run workflow**.
 4. After approval, the CLI applies the saved plan to the same source commit.
    It does not create a new plan. If it changes application files, the workflow
    pushes a new branch and opens a draft pull request. The pull request links

@@ -1,0 +1,290 @@
+name: Reviewed modernization
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Copilot model ID (see modernize help models)
+        type: string
+        default: claude-sonnet-5
+      goal:
+        description: Describe the application change to plan. Do not enter secrets.
+        type: string
+  schedule:
+    - cron: '0 10 * * 2'
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  APP_DIR: caldova_Pharmaceuticals
+  MODERNIZE_MODEL: ${{ inputs.model || 'claude-sonnet-5' }}
+  GOAL: ${{ inputs.goal || 'Plan an upgrade to the latest supported Java version. Keep Oracle and preserve application behaviour.' }}
+  PLAN_NAME: reviewed-${{ github.run_id }}
+  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+jobs:
+  plan:
+    name: Assess the application and create a plan
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    outputs:
+      review_id: ${{ steps.review.outputs.artifact-id }}
+      review_url: ${{ steps.review.outputs.artifact-url }}
+      plan_dir: ${{ steps.plan.outputs.directory }}
+    steps:
+      - name: Check out the source revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Java and Maven toolchains
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: |
+            11
+            17
+            21
+            25
+            8
+          overwrite-settings: false
+
+      - name: Install the pinned Modernize CLI
+        run: &install_cli |
+          archive="$RUNNER_TEMP/modernize.tar.gz"
+          curl --fail --silent --show-error --location --retry 3 \
+            https://github.com/microsoft/modernize-cli/releases/download/v1.0.95/modernize_1.0.95_linux_x64.tar.gz \
+            --output "$archive"
+          printf '%s  %s\n' '18e14c2a206d8b69af9d140cef200802e9e4fbd68330fb86141d4e9425a7c3f3' "$archive" | sha256sum --check
+          mkdir -p "$RUNNER_TEMP/modernize-cli"
+          tar -xzf "$archive" -C "$RUNNER_TEMP/modernize-cli"
+          echo "$RUNNER_TEMP/modernize-cli" >> "$GITHUB_PATH"
+
+      - name: Assess the application
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          if [[ "$GITHUB_RUN_ATTEMPT" != 1 ]]; then
+            echo "::error::Start a new workflow run to create a new plan and approval."
+            exit 1
+          fi
+          : "${GH_TOKEN:?Set the repository Actions secret GH_TOKEN for Copilot.}"
+          if [[ ! "$MODERNIZE_MODEL" =~ ^[a-zA-Z0-9][a-zA-Z0-9._/-]*$ ]]; then
+            echo "::error::Enter a valid model ID from modernize help models."
+            exit 1
+          fi
+          test -f "$APP_DIR/pom.xml"
+          modernize assess --no-tty --model "$MODERNIZE_MODEL" \
+            --source "./$APP_DIR" --format markdown \
+            --output-path "$RUNNER_TEMP/review/assessment"
+
+      - name: Create a plan from the assessment
+        id: plan
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          review="$RUNNER_TEMP/review"
+          for name in assessment-report.json report.json; do
+            mapfile -d '' -t reports < <(find "$review/assessment" -type f -name "$name" -print0)
+            if (( ${#reports[@]} > 0 )); then break; fi
+          done
+          if (( ${#reports[@]} != 1 )) || [[ ! -s "${reports[0]}" ]]; then
+            echo "::error::Expected one JSON assessment report for the application."
+            exit 1
+          fi
+          if [[ "$GOAL" == -* ]]; then
+            echo "::error::Start the goal with a description, not a CLI option."
+            exit 1
+          fi
+          modernize plan create "$GOAL" --no-tty --model "$MODERNIZE_MODEL" --language java \
+            --source "./$APP_DIR" --plan-name "$PLAN_NAME" --assess-file-path "${reports[0]}"
+
+          for dir in ".github/modernize/$PLAN_NAME" "$APP_DIR/.github/modernize/$PLAN_NAME"; do
+            if [[ -s "$dir/plan.md" && ( -s "$dir/tasks.json" || -s "$dir/.metadata/tasks.json" ) ]]; then
+              mkdir -p "$review/plan"
+              cp -a "$dir/." "$review/plan/"
+              printf 'directory=%s\n' "$dir" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          echo "::error::The CLI did not produce both a plan and a task list."
+          exit 1
+
+      - name: Save the assessment and plan for review
+        id: review
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: modernization-review
+          path: ${{ runner.temp }}/review
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Show review instructions
+        env:
+          REVIEW_URL: ${{ steps.review.outputs.artifact-url }}
+        run: |
+          {
+            echo '## Review the modernization plan'
+            printf '\nModel: `%s`\n\nSource commit: `%s`\n' "$MODERNIZE_MODEL" "$GITHUB_SHA"
+            printf '\n[Download the assessment, plan, and task list](%s).\n' "$REVIEW_URL"
+            echo 'Review the report, `plan.md`, and `tasks.json`. Then approve or reject the modernization job.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  execute:
+    name: Execute the approved plan
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: read
+    environment:
+      name: modernization-review
+      url: ${{ needs.plan.outputs.review_url }}
+    outputs:
+      patch_id: ${{ steps.patch.outputs.artifact-id }}
+    steps:
+      - name: Confirm approval for this run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "$GITHUB_RUN_ATTEMPT" != 1 ]]; then
+            echo "::error::Start a new run to request approval again."
+            exit 1
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/approvals" |
+            jq -e 'any(.[]; .state == "approved" and any(.environments[]; .name == "modernization-review"))' >/dev/null ||
+            { echo "::error::No approval was found. Configure a required reviewer for modernization-review."; exit 1; }
+
+      - name: Check out the same source revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Restore the reviewed files
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          artifact-ids: ${{ needs.plan.outputs.review_id }}
+          path: ${{ runner.temp }}/review
+
+      - name: Set up Java and Maven toolchains
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: |
+            11
+            17
+            21
+            25
+            8
+          overwrite-settings: false
+
+      - name: Install the pinned Modernize CLI
+        run: *install_cli
+
+      - name: Apply the saved plan
+        env:
+          GH_TOKEN: ${{ secrets.MODERNIZE_EXECUTE_TOKEN }}
+          PLAN_DIR: ${{ needs.plan.outputs.plan_dir }}
+        run: |
+          : "${GH_TOKEN:?Set MODERNIZE_EXECUTE_TOKEN in the modernization-review environment.}"
+          mkdir -p "$(dirname "$PLAN_DIR")"
+          cp -a "$RUNNER_TEMP/review/plan" "$PLAN_DIR"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          modernize plan execute --no-tty --model "$MODERNIZE_MODEL" --language java \
+            --source "./$APP_DIR" --plan-name "$PLAN_NAME"
+
+      - name: Collect the application changes
+        run: |
+          git add -A -- "$APP_DIR" ":(exclude)$APP_DIR/.github/modernize"
+          git diff --cached --binary --no-ext-diff --no-renames --relative="$APP_DIR" "$GITHUB_SHA" \
+            -- "$APP_DIR" ":(exclude)$APP_DIR/.github/modernize" > "$RUNNER_TEMP/application.patch"
+
+      - name: Save the application patch
+        id: patch
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: modernization-patch
+          path: ${{ runner.temp }}/application.patch
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Open a draft pull request and start validation
+    needs: [plan, execute]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - name: Check out the source revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Download the application patch
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          artifact-ids: ${{ needs.execute.outputs.patch_id }}
+          path: ${{ runner.temp }}/result
+
+      - name: Publish changes and request validation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+          REVIEW_URL: ${{ needs.plan.outputs.review_url }}
+        run: |
+          patch="$RUNNER_TEMP/result/application.patch"
+          test -f "$patch"
+          if [[ ! -s "$patch" ]]; then
+            echo 'No application changes. No branch or pull request was created.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          branch="modernize-reviewed-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          git switch -c "$branch"
+          git apply --index --directory="$APP_DIR" "$patch"
+          git -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m 'chore: apply reviewed modernization plan' \
+            -m 'Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>'
+          gh auth setup-git
+          git -c core.hooksPath=/dev/null push origin "HEAD:refs/heads/$branch"
+
+          body="$RUNNER_TEMP/pull-request.md"
+          export VALIDATION_COMMAND="gh workflow run validate-demo.yml --ref $branch"
+          python3 - "$body" <<'PY'
+          import os
+          import sys
+          from pathlib import Path
+
+          env = os.environ
+          sections = {
+              "📖 Description": "Apply the approved modernization plan to the application. Review the code changes before merge.",
+              "🔗 References": f"[Assessment, plan, and task list]({env['REVIEW_URL']}) (available for 14 days). "
+                               f"See the [workflow run]({env['RUN_URL']}) for the approval and execution logs.",
+              "🔍 Validation": f"`{env['VALIDATION_COMMAND']}`: not run at PR creation. "
+                               "See the workflow run for the dispatch result. Check the validation run before merge.",
+          }
+          text = Path(".github/PULL_REQUEST_TEMPLATE.md").read_text(encoding="utf-8")
+          for heading, content in sections.items():
+              marker = f"## {heading}\n"
+              text = text.replace(marker, f"{marker}\n{content}\n", 1)
+          Path(sys.argv[1]).write_text(text, encoding="utf-8")
+          PY
+          pr_url=$(gh pr create --draft --base "$BASE_BRANCH" --head "$branch" \
+            --title 'chore: apply reviewed modernization plan' --body-file "$body")
+          printf '[Draft pull request](%s)\n' "$pr_url" >> "$GITHUB_STEP_SUMMARY"
+          gh workflow run validate-demo.yml --ref "$branch"
+          printf '\nRequested [legacy demo validation](%s/%s/actions/workflows/validate-demo.yml?query=branch%%3A%s) on the result branch.\n' \
+            "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$branch" >> "$GITHUB_STEP_SUMMARY"
