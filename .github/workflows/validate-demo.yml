@@ -3,11 +3,11 @@ name: Validate Caldova legacy demo
 on:
   push:
     paths:
-      - 'caldova Pharmaceuticals/**'
+      - 'caldova_pharmaceuticals/**'
       - '.github/workflows/validate-demo.yml'
   pull_request:
     paths:
-      - 'caldova Pharmaceuticals/**'
+      - 'caldova_pharmaceuticals/**'
       - '.github/workflows/validate-demo.yml'
   workflow_dispatch:
   schedule:
@@ -22,14 +22,14 @@ jobs:
     timeout-minutes: 25
     defaults:
       run:
-        working-directory: caldova Pharmaceuticals
+        working-directory: caldova_pharmaceuticals
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: caldova Pharmaceuticals/browser-tests/package-lock.json
+          cache-dependency-path: caldova_pharmaceuticals/browser-tests/package-lock.json
       - name: Verify Java 8 against real Oracle
         shell: pwsh
         run: ./scripts/verify-demo.ps1
@@ -41,12 +41,12 @@ jobs:
       - name: Start application
         run: docker compose up -d --build --wait --wait-timeout 180 app
       - name: Install browser validation dependencies
-        working-directory: caldova Pharmaceuticals/browser-tests
+        working-directory: caldova_pharmaceuticals/browser-tests
         run: |
           npm ci
           npx playwright install --with-deps chromium
       - name: Check browser flows
-        working-directory: caldova Pharmaceuticals/browser-tests
+        working-directory: caldova_pharmaceuticals/browser-tests
         run: npm test
       - name: Check real database outage and persistence
         shell: pwsh
@@ -57,9 +57,9 @@ jobs:
         with:
           name: caldova-validation
           path: |
-            caldova Pharmaceuticals/target/surefire-reports/
-            caldova Pharmaceuticals/target/failsafe-reports/
-            caldova Pharmaceuticals/browser-tests/test-results/
+            caldova_pharmaceuticals/target/surefire-reports/
+            caldova_pharmaceuticals/target/failsafe-reports/
+            caldova_pharmaceuticals/browser-tests/test-results/
       - name: Stop only this job's demo containers
         if: always()
         run: docker compose down
