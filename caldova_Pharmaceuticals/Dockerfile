@@ -4,7 +4,7 @@ COPY pom.xml .
 COPY src ./src
 RUN mvn -B -ntp -DskipTests package
 
-FROM eclipse-temurin:8-jre
+FROM eclipse-temurin:24-jre
 LABEL com.azure.containerizationassist.createdby="containerization-assist"
 WORKDIR /app
 COPY --from=build /workspace/target/production-demo-1.0.0.jar /app/app.jar
