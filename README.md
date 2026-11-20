@@ -8,7 +8,7 @@
 2. Open PowerShell in the extracted repository folder and run:
 
    ```powershell
-   Set-Location -LiteralPath '.\caldova Pharmaceuticals'
+   Set-Location -LiteralPath '.\caldova_Pharmaceuticals'
    .\scripts\start-demo.ps1
    ```
 
