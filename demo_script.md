@@ -14,13 +14,28 @@
 **Action:** Crete a terminal. cd into enviroment using `cd C:\caldova_pharma_demo\caldova_Pharmaceuticals` run `pwsh .\scripts\start-demo.ps1`. open browser and go to the terminal 
 enter password in env file
 
+or 
+
+```
+mvn -version
+docker compose stop app
+docker compose up -d --wait --wait-timeout 420 oracle
+$env:SPRING_DATASOURCE_URL = 'jdbc:oracle:thin:@localhost:1521/FREEPDB1'
+$env:SPRING_DATASOURCE_USERNAME = 'CALDOVA_READ'
+$env:SPRING_DATASOURCE_PASSWORD = (
+    Get-Content -LiteralPath '.env' |
+    Where-Object { $_ -match '^CALDOVA_READ_PASSWORD=' }
+) -replace '^CALDOVA_READ_PASSWORD=', ''
+mvn spring-boot:run
+```
+
 **Say:** Caldova is a fictional pharmaceutical manufacturer. It has four plants and 160 production lines. The current application gives operators a place to investigate line stops, but the process is manual and the system is difficult to change. Our goal today is to show both a path to modernise and keep it current.”
 
 **Action:** In the GitHub Copilot app, ask Copilot to summarise the repository and identify the application folder, its runtime stack, and the available workflows. Check its answer against the files before repeating it.
 
 **Say:** “Copilot helps us explore the repository, but we verify important details in the source files and workflow definitions. It is an assistant, not the source of truth.”
 
-**Say:** “The application and Oracle run locally in Docker. The startup script prepares the fictional Oracle data, builds the Java 8 application, starts it, and checks that it is ready. The database uses persistent local storage, so a normal restart does not remove the demo data.”
+**Say:** “The application and Oracle run locally in Docker (instead of connect to an installed Oracle server or an Oracle instance in a VM.). The startup script prepares the fictional Oracle data, builds the Java 8 application, starts it, and checks that it is ready. The database uses persistent local storage, so a normal restart does not remove the demo data.”
 
 **Show:** Overview, production-line filters, one line's alarms/signals/readiness/manual excerpts, maintenance, and the fictional shift rota.
 

@@ -87,6 +87,49 @@ docker compose stop app oracle
 
 Do not use `docker compose down --volumes`: it deletes the stored demo database.
 
+## Run a reviewed modernisation
+
+The [Reviewed modernization workflow](.github/workflows/reviewed-modernization.yml)
+is separate from **Continuous modernization**. It runs on Tuesdays at 10:00 UTC
+or on demand from the default branch. The scheduled run uses `claude-sonnet-5`.
+It plans an upgrade to the latest supported Java version while keeping Oracle
+and preserving application behaviour.
+
+**Set up the repository once:**
+
+1. In **Settings → Secrets and variables → Actions**, set the repository secret
+   `GH_TOKEN` to a token authorised for Copilot. Do not grant repository write
+   access to this token.
+2. In **Settings → Environments**, create `modernization-review`. Add the
+   presenter as a required reviewer. Leave **Prevent self-review** off for
+   this demo. Disable administrator bypass and restrict the environment to the
+   default branch. Add an environment secret named `MODERNIZE_EXECUTE_TOKEN`
+   for Copilot access after approval. Do not grant it repository write access.
+3. In **Settings → Actions → General**, allow GitHub Actions to create pull
+   requests. The publish job uses the built-in GitHub token to push the result
+   branch and open a draft pull request.
+
+**Run and review:**
+
+1. In **Actions → Reviewed modernization**, select **Run workflow**. Enter a
+   goal and a model ID available to your Copilot account. Use
+   `modernize help models` to find model IDs. Do not enter secrets in the goal
+   or include sensitive data in the repository or reports.
+2. The CLI assesses the application. It uses the assessment to create a plan.
+   The workflow adds a download link to the run summary.
+3. Download the assessment, `plan.md`, and `tasks.json`. Check the scope,
+   target Java version, Oracle compatibility, and tests. In the run, select
+   **Review deployments**. Approve the job only if the plan is acceptable.
+   If you reject it or need a different plan, start a new run.
+4. After approval, the CLI applies the saved plan to the same source commit.
+   It does not create a new plan. If it changes application files, the workflow
+   pushes a new branch and opens a draft pull request. The pull request links
+   to the assessment and plan for 14 days. The workflow does not open an issue
+   or merge the pull request.
+5. The publish job starts [legacy demo validation](.github/workflows/validate-demo.yml)
+   on the result branch. Review the diff and wait for the test results before
+   merging. The request to start validation is not a passing test result.
+
 ## Customer background
 
 Caldova Pharmaceuticals manufactures medicines for global markets. It operates four plants with a total of 160 production lines, each running two shifts per day.
