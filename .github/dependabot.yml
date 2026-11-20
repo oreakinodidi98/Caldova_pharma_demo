@@ -6,7 +6,7 @@
 version: 2
 updates:
   - package-ecosystem: "maven"
-    directory: "/caldova_pharmaceuticals"
+    directory: "/caldova_Pharmaceuticals"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 2
@@ -14,7 +14,7 @@ updates:
       prefix: '[Dependabot]'
       include: 'scope'
   - package-ecosystem: "npm"
-    directory: "/caldova_pharmaceuticals/browser-tests"
+    directory: "/caldova_Pharmaceuticals/browser-tests"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 2
@@ -22,7 +22,7 @@ updates:
       prefix: '[Dependabot]'
       include: 'scope'
   - package-ecosystem: "docker"
-    directory: "/caldova_pharmaceuticals"
+    directory: "/caldova_Pharmaceuticals"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 2
