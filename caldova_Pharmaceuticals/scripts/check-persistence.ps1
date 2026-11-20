@@ -1,6 +1,7 @@
 . (Join-Path $PSScriptRoot 'common.ps1')
 Initialize-DemoEnvironment
-$curl = (Get-Command curl -CommandType Application -ErrorAction Stop).Source
+$curl = Get-Command curl -CommandType Application -ErrorAction Stop |
+    Select-Object -First 1 -ExpandProperty Source
 $cookie = [IO.Path]::GetTempFileName()
 
 function Assert-HttpStatus([string]$Path, [int]$Expected) {
