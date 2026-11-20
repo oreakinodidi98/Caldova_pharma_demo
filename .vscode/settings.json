@@ -1,3 +1,5 @@
 {
-    "iis.configDir": ""
+    "iis.configDir": "",
+    "chat.editor.preferCopilotHarness": false,
+    "chat.defaultToCopilotHarness": false
 }
