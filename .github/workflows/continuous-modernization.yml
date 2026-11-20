@@ -11,7 +11,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'caldova_pharmaceuticals/**'
+      - 'caldova_Pharmaceuticals/**'
   schedule:
     - cron: '0 10 * * 5'
 
@@ -33,6 +33,7 @@ jobs:
       run:
         shell: bash
     env:
+      APP_DIRECTORY: caldova_Pharmaceuticals
 # Stores the requested Java upgrade target. Manual runs can override it; scheduled runs use latest
       UPGRADE_TARGET: ${{ inputs.upgrade_target || 'latest' }}
 
@@ -91,9 +92,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           if [ "$UPGRADE_TARGET" = "latest" ]; then
-            modernize upgrade --source caldova_pharmaceuticals --no-tty
+            modernize upgrade --source "$APP_DIRECTORY" --no-tty
           else
-            modernize upgrade "$UPGRADE_TARGET" --source caldova_pharmaceuticals --no-tty
+            modernize upgrade "$UPGRADE_TARGET" --source "$APP_DIRECTORY" --no-tty
           fi
 # configures Git, squashes all Modernize CLI changes since the starting commit into one commit, excludes workflow changes except ci.yml, then pushes the result to a new modernization branch if anything changed.
       - name: Push changes to result branch

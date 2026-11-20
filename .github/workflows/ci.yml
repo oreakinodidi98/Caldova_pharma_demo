@@ -25,6 +25,8 @@ jobs:
     name: Build and test
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      APP_DIRECTORY: caldova_Pharmaceuticals
 
     steps:
 # Checks out the source code
@@ -34,7 +36,7 @@ jobs:
       - name: Detect Java version from pom.xml
         id: java
         run: |
-          version=$(sed -n 's:.*<java.version>\(.*\)</java.version>.*:\1:p' caldova_Pharmaceuticals/pom.xml | head -n1)
+          version=$(sed -n 's:.*<java.version>\(.*\)</java.version>.*:\1:p' "$APP_DIRECTORY/pom.xml" | head -n1)
           version="${version#1.}"
           echo "version=${version:-8}" >> "$GITHUB_OUTPUT"
           echo "Using Java ${version:-8}"
@@ -45,9 +47,9 @@ jobs:
           distribution: temurin
           java-version: ${{ steps.java.outputs.version }}
           cache: maven
-          cache-dependency-path: caldova_Pharmaceuticals/pom.xml
+          cache-dependency-path: ${{ env.APP_DIRECTORY }}/pom.xml
       - name: Prepare Oracle and test credentials
-        working-directory: caldova_Pharmaceuticals
+        working-directory: ${{ env.APP_DIRECTORY }}
         shell: pwsh
         run: |
           ./scripts/setup-demo.ps1
@@ -70,7 +72,7 @@ jobs:
           }
 # Maven command to compile the app, run tests, and perform any configured verification checks
       - name: Build and test
-        working-directory: caldova_Pharmaceuticals
+        working-directory: ${{ env.APP_DIRECTORY }}
         run: mvn --batch-mode --no-transfer-progress verify
       - name: Store test reports
         if: always()
@@ -78,9 +80,9 @@ jobs:
         with:
           name: caldova-build-tests
           path: |
-            caldova_Pharmaceuticals/target/surefire-reports/
-            caldova_Pharmaceuticals/target/failsafe-reports/
+            ${{ env.APP_DIRECTORY }}/target/surefire-reports/
+            ${{ env.APP_DIRECTORY }}/target/failsafe-reports/
       - name: Stop this job's database
         if: always()
-        working-directory: caldova_Pharmaceuticals
+        working-directory: ${{ env.APP_DIRECTORY }}
         run: docker compose down
