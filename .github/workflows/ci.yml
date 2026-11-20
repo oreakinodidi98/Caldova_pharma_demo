@@ -4,11 +4,11 @@ on:
   push:
     branches: [main]
     paths:
-      - 'caldova_pharmaceuticals/**'
+      - 'caldova_Pharmaceuticals/**'
   pull_request:
     branches: [main]
     paths:
-      - 'caldova_pharmaceuticals/**'
+      - 'caldova_Pharmaceuticals/**'
   workflow_dispatch:
 
 permissions:
@@ -32,7 +32,7 @@ jobs:
       - name: Detect Java version from pom.xml
         id: java
         run: |
-          version=$(sed -n 's:.*<java.version>\(.*\)</java.version>.*:\1:p' caldova_pharmaceuticals/pom.xml | head -n1)
+          version=$(sed -n 's:.*<java.version>\(.*\)</java.version>.*:\1:p' caldova_Pharmaceuticals/pom.xml | head -n1)
           version="${version#1.}"
           echo "version=${version:-8}" >> "$GITHUB_OUTPUT"
           echo "Using Java ${version:-8}"
@@ -43,8 +43,8 @@ jobs:
           distribution: temurin
           java-version: ${{ steps.java.outputs.version }}
           cache: maven
-          cache-dependency-path: caldova_pharmaceuticals/pom.xml
+          cache-dependency-path: caldova_Pharmaceuticals/pom.xml
 # Maven command to compile the app, run tests, and perform any configured verification checks
       - name: Build and test
-        working-directory: caldova_pharmaceuticals
+        working-directory: caldova_Pharmaceuticals
         run: mvn --batch-mode --no-transfer-progress verify
