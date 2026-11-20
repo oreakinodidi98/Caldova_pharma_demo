@@ -173,6 +173,7 @@ jobs:
         with:
           artifact-ids: ${{ needs.plan.outputs.review_id }}
           path: ${{ runner.temp }}/review
+          merge-multiple: true
 
       - name: Set up Java and Maven toolchains
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
@@ -237,6 +238,7 @@ jobs:
         with:
           artifact-ids: ${{ needs.execute.outputs.patch_id }}
           path: ${{ runner.temp }}/result
+          merge-multiple: true
 
       - name: Publish changes and request validation
         env:
