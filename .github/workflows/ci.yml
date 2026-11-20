@@ -5,10 +5,12 @@ on:
     branches: [main]
     paths:
       - 'caldova_Pharmaceuticals/**'
+      - '.github/workflows/ci.yml'
   pull_request:
     branches: [main]
     paths:
       - 'caldova_Pharmaceuticals/**'
+      - '.github/workflows/ci.yml'
   workflow_dispatch:
 
 permissions:
@@ -22,13 +24,13 @@ jobs:
   build:
     name: Build and test
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     steps:
 # Checks out the source code
       - name: Check out source
         uses: actions/checkout@v4
-# Reads java.version from src/pom.xml (1.8 -> 8) so CI matches the Java version of the branch being built, including modernised branches
+# Reads java.version from pom.xml (1.8 -> 8) so CI matches the Java version of the branch being built, including modernised branches
       - name: Detect Java version from pom.xml
         id: java
         run: |
@@ -44,7 +46,43 @@ jobs:
           java-version: ${{ steps.java.outputs.version }}
           cache: maven
           cache-dependency-path: caldova_Pharmaceuticals/pom.xml
-# Maven command to compile the app, run tests, and perform any configured verification checks
+      - name: Prepare Oracle database
+        working-directory: caldova_Pharmaceuticals
+        shell: pwsh
+        run: |
+          . ./scripts/common.ps1
+          Initialize-DemoEnvironment
+          Invoke-Compose up -d --wait --wait-timeout 420 oracle
+          Invoke-Compose exec -T oracle sh -c 'sqlplus -s / as sysdba @/opt/caldova/sql/setup.sql "$CALDOVA_OWNER_PASSWORD" "$CALDOVA_READ_PASSWORD"'
+# Use the same test credentials as Compose, but connect through the host's IPv4 listener.
       - name: Build and test
         working-directory: caldova_Pharmaceuticals
-        run: mvn --batch-mode --no-transfer-progress verify
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $configJson = docker compose --profile tools config --format json
+          if ($LASTEXITCODE -ne 0) { throw 'Could not read the demo test environment.' }
+          $config = $configJson | ConvertFrom-Json
+          foreach ($property in $config.services.verify.environment.PSObject.Properties) {
+            if ($property.Name -like '*PASSWORD') {
+              Write-Output "::add-mask::$($property.Value)"
+            }
+            [Environment]::SetEnvironmentVariable($property.Name, $property.Value, 'Process')
+          }
+          $env:SPRING_DATASOURCE_URL = 'jdbc:oracle:thin:@127.0.0.1:1521/FREEPDB1'
+          mvn --batch-mode --no-transfer-progress compile exec:exec '-Dexec.executable=java' '-Dexec.args=-classpath %classpath com.caldova.production.setup.PresenterAccountSetup'
+          if ($LASTEXITCODE -ne 0) { throw 'Presenter account setup failed.' }
+          mvn --batch-mode --no-transfer-progress verify
+          if ($LASTEXITCODE -ne 0) { throw 'Build and test failed.' }
+      - name: Store test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: caldova-build-test-reports
+          path: |
+            caldova_Pharmaceuticals/target/surefire-reports/
+            caldova_Pharmaceuticals/target/failsafe-reports/
+      - name: Stop only this job's demo containers
+        if: always()
+        working-directory: caldova_Pharmaceuticals
+        run: docker compose down
