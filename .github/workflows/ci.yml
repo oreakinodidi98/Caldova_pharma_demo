@@ -25,6 +25,8 @@ jobs:
     name: Build and test
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      APP_DIRECTORY: caldova_Pharmaceuticals
 
     steps:
 # Checks out the source code
@@ -45,9 +47,9 @@ jobs:
           distribution: temurin
           java-version: ${{ steps.java.outputs.version }}
           cache: maven
-          cache-dependency-path: caldova_Pharmaceuticals/pom.xml
+          cache-dependency-path: ${{ env.APP_DIRECTORY }}/pom.xml
       - name: Prepare Oracle database
-        working-directory: caldova_Pharmaceuticals
+        working-directory: ${{ env.APP_DIRECTORY }}
         shell: pwsh
         run: |
           . ./scripts/common.ps1
@@ -56,7 +58,7 @@ jobs:
           Invoke-Compose exec -T oracle sh -c 'sqlplus -s / as sysdba @/opt/caldova/sql/setup.sql "$CALDOVA_OWNER_PASSWORD" "$CALDOVA_READ_PASSWORD"'
 # Use the same test credentials as Compose, but connect through the host's IPv4 listener.
       - name: Build and test
-        working-directory: caldova_Pharmaceuticals
+        working-directory: ${{ env.APP_DIRECTORY }}
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -80,8 +82,8 @@ jobs:
         with:
           name: caldova-build-test-reports
           path: |
-            caldova_Pharmaceuticals/target/surefire-reports/
-            caldova_Pharmaceuticals/target/failsafe-reports/
+            ${{ env.APP_DIRECTORY }}/target/surefire-reports/
+            ${{ env.APP_DIRECTORY }}/target/failsafe-reports/
       - name: Stop only this job's demo containers
         if: always()
         working-directory: ${{ env.APP_DIRECTORY }}
