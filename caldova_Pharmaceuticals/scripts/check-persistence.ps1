@@ -42,6 +42,22 @@ function Assert-OperationalRecords {
     if ([regex]::Matches($rota, '\b(?:NB|WH|EM|SW)-EMP\d{3}\b').Count -ne 16) { throw 'Expected 16 employee assignments for the default day.' }
 }
 
+function Wait-ApplicationReady {
+    $output = [IO.Path]::GetTempFileName()
+    try {
+        $status = & $curl --silent --show-error --fail --retry 60 --retry-connrefused `
+            --retry-delay 1 --retry-max-time 55 --max-time 5 -o $output -w '%{http_code}' `
+            'http://127.0.0.1:8080/api/health'
+        if ($LASTEXITCODE -ne 0 -or [int]$status -ne 200) {
+            throw "Application readiness did not recover within 60 seconds after Oracle restart (HTTP $status, curl exit $LASTEXITCODE)."
+        }
+        $health = [IO.File]::ReadAllText($output) | ConvertFrom-Json
+        if ($health.status -ne 'UP') {
+            throw 'Application readiness must be UP after Oracle restart.'
+        }
+    } finally { Remove-Item -LiteralPath $output }
+}
+
 try {
     Sign-InPresenter 302
     Assert-OperationalRecords
@@ -56,6 +72,7 @@ try {
     } finally {
         Invoke-Compose up -d --wait --wait-timeout 420 oracle
     }
+    Wait-ApplicationReady
     [IO.File]::WriteAllText($cookie, '')
     Sign-InPresenter 302
     Assert-OperationalRecords

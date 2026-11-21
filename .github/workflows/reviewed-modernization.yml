@@ -219,7 +219,7 @@ jobs:
           retention-days: 14
 
   publish:
-    name: Open a draft pull request and start validation
+    name: Open a draft pull request
     needs: [plan, execute]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -240,7 +240,7 @@ jobs:
           path: ${{ runner.temp }}/result
           merge-multiple: true
 
-      - name: Publish changes and request validation
+      - name: Publish changes
         env:
           GH_TOKEN: ${{ github.token }}
           BASE_BRANCH: ${{ github.event.repository.default_branch }}
@@ -275,8 +275,10 @@ jobs:
               "📖 Description": "Apply the approved modernization plan to the application. Review the code changes before merge.",
               "🔗 References": f"[Assessment, plan, and task list]({env['REVIEW_URL']}) (available for 14 days). "
                                f"See the [workflow run]({env['RUN_URL']}) for the approval and execution logs.",
-              "🔍 Validation": f"`{env['VALIDATION_COMMAND']}`: not run at PR creation. "
-                               "See the workflow run for the dispatch result. Check the validation run before merge.",
+              "🔍 Validation": "Check the Build and test results before merge. "
+                               "Full demo validation is manual-only. Run "
+                               f"`{env['VALIDATION_COMMAND']}` on this branch before presenting the demo. "
+                               "No demo validation run is dispatched at PR creation.",
           }
           text = Path(".github/PULL_REQUEST_TEMPLATE.md").read_text(encoding="utf-8")
           for heading, content in sections.items():
@@ -287,6 +289,6 @@ jobs:
           pr_url=$(gh pr create --draft --base "$BASE_BRANCH" --head "$branch" \
             --title 'chore: apply reviewed modernization plan' --body-file "$body")
           printf '[Draft pull request](%s)\n' "$pr_url" >> "$GITHUB_STEP_SUMMARY"
-          gh workflow run validate-demo.yml --ref "$branch"
-          printf '\nRequested [legacy demo validation](%s/%s/actions/workflows/validate-demo.yml?query=branch%%3A%s) on the result branch.\n' \
+          printf '\nRun [legacy demo validation](%s/%s/actions/workflows/validate-demo.yml?query=branch%%3A%s) manually on the result branch before presenting the demo.\n' \
             "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$branch" >> "$GITHUB_STEP_SUMMARY"
+          printf '\nManual command: `%s`\n' "$VALIDATION_COMMAND" >> "$GITHUB_STEP_SUMMARY"

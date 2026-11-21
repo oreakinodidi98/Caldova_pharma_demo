@@ -1,17 +1,17 @@
 name: Validate Caldova legacy demo
 
 on:
-  push:
-    paths:
-      - 'caldova_Pharmaceuticals/**'
-      - '.github/workflows/validate-demo.yml'
-  pull_request:
-    paths:
-      - 'caldova_Pharmaceuticals/**'
-      - '.github/workflows/validate-demo.yml'
+  # push:
+  #   paths:
+  #     - 'caldova_Pharmaceuticals/**'
+  #     - '.github/workflows/validate-demo.yml'
+  # pull_request:
+  #   paths:
+  #     - 'caldova_Pharmaceuticals/**'
+  #     - '.github/workflows/validate-demo.yml'
   workflow_dispatch:
-  schedule:
-    - cron: '17 3 * * 1'
+  # schedule:
+  #   - cron: '17 3 * * 1'
 
 permissions:
   contents: read

@@ -91,11 +91,11 @@ To test a real database outage and persistence, return to this application's fol
 .\scripts\check-persistence.ps1
 ```
 
-This signs in, stops only the demo Oracle container, checks HTTP 503 for data pages and a fresh sign-in attempt, and checks DOWN readiness. It restarts Oracle and verifies sign-in, all 160 lines, 12 maintenance records, and 16 assignments on the default day. Do not run it at the same time as other tests or a presentation.
+This signs in, stops only the demo Oracle container, checks HTTP 503 for data pages and a fresh sign-in attempt, and checks DOWN readiness. After Oracle restarts, it waits up to 60 seconds for application readiness to return UP, then verifies sign-in, all 160 lines, 12 maintenance records, and 16 assignments on the default day. The check fails if readiness does not recover. Do not run it at the same time as other tests or a presentation.
 
 The **Build and test** workflow starts Oracle, applies the schema and fictional records, and creates the presenter account before running Maven `verify`. It uses the Java version from `pom.xml`, passes the required database and test credentials, and connects to Oracle through `127.0.0.1`. It stores test reports and stops its containers even if a test fails. Changes to the application or that workflow trigger this check.
 
-The **Validate Caldova legacy demo** workflow runs the full checks for application changes, manual runs, and weekly scheduled validation. It also resets fictional data and checks record totals and sign-in without reapplying setup, so setup cannot hide an incomplete reset. Local checks do not prove that the hosted workflow has run.
+The **Validate Caldova legacy demo** workflow is manual-only. Run it from GitHub Actions on the branch you will present after modernization or before a demonstration. It also resets fictional data and checks record totals and sign-in without reapplying setup, so setup cannot hide an incomplete reset. The **Build and test** workflow remains configured for PRs and pushes to `main`. Local checks do not prove that the hosted workflow has run.
 
 ## Repeat or stop the demo
 

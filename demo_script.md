@@ -224,11 +224,11 @@ setup and recovery steps.
     the same source commit; it does not create a replacement plan. The workflow
     checks for a recorded approval before it runs the CLI.
 5. If application files changed, show the `modernize-reviewed-<run_id>-<attempt>`
-    branch and draft pull request. The publish job requests
-    [legacy demo validation](.github/workflows/validate-demo.yml) on that branch,
-    rather than the autonomous workflow's build-and-test dispatch. Open the
-    validation run and review its actual results. No application changes means
-    no branch or pull request.
+    branch and draft pull request. The publish job does not start
+    [legacy demo validation](.github/workflows/validate-demo.yml). Before
+    presenting, select **Run workflow** on that result branch, or use the manual
+    command in the PR or job summary. Review the actual validation results.
+    No application changes means no branch or pull request.
 
 **Say:** "Approve and deploy is GitHub's button name. Here it allows the
 modernisation job to run; it does not deploy the application to Azure. We approve

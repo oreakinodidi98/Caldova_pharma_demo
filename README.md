@@ -167,9 +167,11 @@ code review or passing tests.
    pushes a new branch and opens a draft pull request. The pull request links
    to the assessment and plan for 14 days. The workflow does not open an issue
    or merge the pull request.
-5. The publish job starts [legacy demo validation](.github/workflows/validate-demo.yml)
-   on the result branch. Review the diff and wait for the test results before
-   merging. The request to start validation is not a passing test result.
+5. Review the diff and the **Build and test** results before merging.
+   [Legacy demo validation](.github/workflows/validate-demo.yml) is manual-only.
+   Before presenting, select **Run workflow** on the result branch. The draft
+   pull request and job summary include the equivalent CLI command.
+   A successful modernization run does not prove that demo validation passed.
 
 ## Customer background
 
