@@ -282,6 +282,12 @@ that address and sign in as `presenter` with the original `PRESENTER_PASSWORD`.
 or 
 
 ```
+@"
+ORACLE_PWD=
+CALDOVA_OWNER_PASSWORD=
+CALDOVA_READ_PASSWORD=
+PRESENTER_PASSWORD=
+"@ | Set-Content -Path .env
 $env:JAVA_HOME = 'C:\Users\oreakinodidi\AppData\Local\jdks\jdk-21.0.13.1+2'
 $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
 mvn -version
