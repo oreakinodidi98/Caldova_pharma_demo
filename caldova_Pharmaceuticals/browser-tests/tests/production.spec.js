@@ -73,6 +73,8 @@ test('bad requests and missing records render error pages with their actual HTTP
   response = await page.goto('/lines/9999');
   expect(response.status()).toBe(404);
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Line not found');
+  response = await page.goto('/lines');
+  expect(response.status()).toBe(200);
   const token = await page.locator('form[action="/logout"] input[name="_csrf"]').inputValue();
   const mutation = await page.request.post('/lines/1', { form: { _csrf: token } });
   expect(mutation.status()).toBe(405);
