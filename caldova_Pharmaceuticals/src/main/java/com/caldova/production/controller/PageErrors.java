@@ -2,7 +2,8 @@ package com.caldova.production.controller;
 
 import com.caldova.production.service.LineNotFoundException;
 import java.util.UUID;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -10,11 +11,17 @@ import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @ControllerAdvice
 public class PageErrors {
     private static final Logger LOG = LoggerFactory.getLogger(PageErrors.class);
+
+    @ModelAttribute("remoteUser")
+    public String remoteUser(HttpServletRequest request) {
+        return request.getRemoteUser();
+    }
 
     @ExceptionHandler({IllegalArgumentException.class, MethodArgumentTypeMismatchException.class})
     public String invalid(Exception ex, Model model, HttpServletResponse response) {
