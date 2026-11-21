@@ -251,6 +251,7 @@ Use a prompt as the workflow’s `goal` input.
 |---|---|
 | Framework upgrades | `upgrade to spring boot 3` |
 | Framework upgrades | `upgrade to .NET 10` |
+| Framework upgrades | `upgrade to Java 11` |
 | Framework upgrades | `upgrade to JDK 21` |
 | Framework upgrades | `migrate from spring boot 2 to spring boot 3` |
 | Database migrations | `migrate from oracle to azure postgresql` |
