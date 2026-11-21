@@ -208,7 +208,7 @@ setup and recovery steps.
 
 1. In **Actions → Reviewed modernization**, select **Run workflow** on the
     default branch. Select a model available to your Copilot account. For an
-    example goal, enter `Upgrade to Java 21. Keep Oracle and preserve application behaviour.`
+    example goal, enter `Upgrade to Java 21. Keep Oracle and preserve application behaviour.` or `migrate from spring boot 2 to spring boot 3`
     Do not enter secrets or sensitive data. Start a new run rather than using
     **Re-run failed jobs**; this workflow rejects reruns.
 2. After the plan job completes, open the run summary and download the
@@ -243,6 +243,37 @@ review the new artifact, and approve the waiting job. Adding the execution
 secret or changing settings cannot add approval to the previous failed run.
 Show the failure accurately; do not imply that execution or publication passed.
 
+
+**Demo Prompts**
+Use a prompt as the workflow’s `goal` input.
+
+| Category | Prompt |
+|---|---|
+| Framework upgrades | `upgrade to spring boot 3` |
+| Framework upgrades | `upgrade to .NET 10` |
+| Framework upgrades | `upgrade to JDK 21` |
+| Framework upgrades | `migrate from spring boot 2 to spring boot 3` |
+| Database migrations | `migrate from oracle to azure postgresql` |
+| Database migrations | `migrate from SQL Server to azure cosmos db` |
+| Database migrations | `switch from MySQL to azure database for mysql` |
+| Cloud migrations | `migrate from on-premises to azure` |
+| Cloud migrations | `containerize and deploy to azure container apps` |
+| Cloud migrations | `migrate from rabbitmq to azure service bus` |
+| Deployment | `deploy to azure app service` |
+| Deployment | `deploy to azure kubernetes service` |
+| Deployment | `set up CI/CD pipeline for azure` |
+
+**Copilot Model IDs**
+Use an ID as the workflow’s `model` input. These are the alternatives that work.
+
+| Model | Model ID | Suggested Tasks |
+|---|---|---|
+| GPT-5.3-Codex | `gpt-5.3-codex` | Code changes and upgrades |
+| Claude Sonnet 5.5 | `claude-sonnet-5.5` | General coding and modernization |
+| Claude Opus 5.5 | `claude-opus-5.5` | Complex changes and planning |
+| Claude Haiku 4.5 | `claude-haiku-4.5` | Small, focused changes |
+
+Model access can vary by account and policy; check with `modernize help models`.
 
 ### run in worktree
 
