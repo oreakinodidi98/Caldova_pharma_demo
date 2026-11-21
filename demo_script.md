@@ -320,6 +320,7 @@ CALDOVA_OWNER_PASSWORD=
 CALDOVA_READ_PASSWORD=
 PRESENTER_PASSWORD=
 "@ | Set-Content -Path .env
+$env:JAVA_HOME = 'C:\Users\oreakinodidi\AppData\Local\jdks\jdk-25.0.2'
 $env:JAVA_HOME = 'C:\Users\oreakinodidi\AppData\Local\jdks\jdk-21.0.13.1+2'
 $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
 mvn -version
@@ -335,9 +336,13 @@ mvn spring-boot:run
 ```
 
 
-#### highlight to shw to audence it modernised framework
+#### highlight to show to audence it modernised framework
 
 say: The original project targets Java 8. This pull request changes that target to Java 21. The terminal shows that the application compiles and starts on Java 21. Spring Boot remains at version 2.7.18 in this upgrade. We will now check the application pages and database features
+
+We can see the PRs that were created from our worklows and the checks (Build and Test for the different PRs)
+
+If we have a failure , Modernisation ofc is not flawles but the beauty is we are in github copilot enviroment, so can use Fix with a copilot cloud agent to see how it will fix it for this PR
 
 ### 8. Close with the point of the demo
 
