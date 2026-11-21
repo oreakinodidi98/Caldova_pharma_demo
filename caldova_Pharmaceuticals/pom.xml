@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.7.18</version>
+    <version>3.5.15</version>
     <relativePath/>
   </parent>
   <groupId>com.caldova</groupId>
@@ -13,8 +13,16 @@
   <version>1.0.0</version>
   <name>Caldova Pharmaceuticals</name>
   <properties>
-    <java.version>1.8</java.version>
+    <java.version>17</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <assertj.version>3.27.7</assertj.version>
+    <jackson-bom.version>2.21.7</jackson-bom.version>
+    <log4j2.version>2.25.5</log4j2.version>
+    <logback.version>1.5.34</logback.version>
+    <spring-framework.version>6.2.19</spring-framework.version>
+    <spring-security.version>6.5.11</spring-security.version>
+    <thymeleaf.version>3.1.5.RELEASE</thymeleaf.version>
+    <tomcat.version>10.1.62</tomcat.version>
   </properties>
   <dependencies>
     <dependency>
@@ -28,6 +36,10 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-thymeleaf</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.thymeleaf.extras</groupId>
+      <artifactId>thymeleaf-extras-springsecurity6</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -47,7 +59,7 @@
     <dependency>
       <groupId>org.jsoup</groupId>
       <artifactId>jsoup</artifactId>
-      <version>1.18.3</version>
+      <version>1.23.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
