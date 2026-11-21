@@ -1,11 +1,12 @@
 package com.caldova.production.controller;
 
 import com.caldova.production.repository.ProductionRepository;
+import com.caldova.production.testsupport.SecurityMockMvcSupportConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -13,13 +14,15 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.context.annotation.Import;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(SecurityMockMvcSupportConfiguration.class)
 @WithMockUser("presenter")
 class DatabaseFailureTest {
     @Autowired private MockMvc mvc;
-    @MockBean private ProductionRepository repository;
+    @MockitoBean private ProductionRepository repository;
 
     @Test
     void oracleFailureReturns503ForBothHtmlAndHealthWithoutSubstituteRecords() throws Exception {
