@@ -30,7 +30,7 @@ jobs:
         run: |
           . ./scripts/common.ps1
           "CALDOVA_JAVA_VERSION=$env:CALDOVA_JAVA_VERSION" >> $env:GITHUB_ENV
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
