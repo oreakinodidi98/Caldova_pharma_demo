@@ -13,8 +13,26 @@
   <version>1.0.0</version>
   <name>Caldova Pharmaceuticals</name>
   <properties>
-    <java.version>1.8</java.version>
+    <java.version>21</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- CVE remediation: pin dependency versions above the defaults from
+         spring-boot-starter-parent:2.7.18 to pick up security patches while
+         staying on Spring Boot 2.7.x / Spring Framework 5.3.x / Spring
+         Security 5.7.x (no javax->jakarta namespace change). -->
+    <spring-framework.version>5.3.39</spring-framework.version>
+    <spring-security.version>5.7.14</spring-security.version>
+    <tomcat.version>9.0.118</tomcat.version>
+    <jackson-bom.version>2.18.4</jackson-bom.version>
+    <logback.version>1.2.13</logback.version>
+    <snakeyaml.version>1.33</snakeyaml.version>
+    <!-- 3.0.15.RELEASE is already the newest 3.0.x patch; upgrading to
+         3.1.x breaks the #httpServletRequest SpEL expression object used in
+         templates (see cve-fix-summary.md follow-up). -->
+    <thymeleaf.version>3.0.15.RELEASE</thymeleaf.version>
+    <log4j2.version>2.26.0</log4j2.version>
+    <xmlunit2.version>2.10.0</xmlunit2.version>
+    <assertj.version>3.27.3</assertj.version>
+    <json-path.version>2.9.0</json-path.version>
   </properties>
   <dependencies>
     <dependency>
@@ -47,7 +65,7 @@
     <dependency>
       <groupId>org.jsoup</groupId>
       <artifactId>jsoup</artifactId>
-      <version>1.18.3</version>
+      <version>1.21.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
