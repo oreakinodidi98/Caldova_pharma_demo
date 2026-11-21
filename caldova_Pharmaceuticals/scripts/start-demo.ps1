@@ -1,4 +1,5 @@
 . (Join-Path $PSScriptRoot 'common.ps1')
+Add-Type -AssemblyName System.Net.Http -ErrorAction Stop
 & (Join-Path $PSScriptRoot 'setup-demo.ps1')
 Invoke-Compose up -d --build app
 $ready = $false

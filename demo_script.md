@@ -17,6 +17,8 @@ enter password in env file
 or 
 
 ```
+$env:JAVA_HOME = 'C:\Users\oreakinodidi\AppData\Local\jdks\jdk-17.0.18'
+$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
 mvn -version
 docker compose stop app
 docker compose up -d --wait --wait-timeout 420 oracle
@@ -240,6 +242,64 @@ plan restriction before continuing. Start a fresh run with **Run workflow**,
 review the new artifact, and approve the waiting job. Adding the execution
 secret or changing settings cannot add approval to the previous failed run.
 Show the failure accurately; do not imply that execution or publication passed.
+
+
+### run in worktree
+
+Use the container script for the modernised app. Keep the manual commands in
+stage 1 for the original app.
+
+1. Stop the original host app with Ctrl+C. Open a new terminal in the selected
+     PR worktree. Change to its `caldova_Pharmaceuticals` folder. Start Docker
+     Desktop in Linux-container mode. Run only one demo branch at a time.
+
+2. Copy the original credentials file into this folder. This replaces an empty
+     or incomplete worktree file. It does not show the passwords.
+
+```powershell
+Copy-Item -LiteralPath 'C:\caldova_pharma_demo\caldova_Pharmaceuticals\.env' -Destination '.env'
+```
+
+Continue only if the copy completes. Git does not copy this ignored file into
+a worktree. The four values must match the existing database accounts. Do not
+use the blank template, enter new passwords, or delete the Oracle volume. Do
+not share or commit the credentials file.
+
+3. Run the startup script with PowerShell 7:
+
+```powershell
+pwsh .\scripts\start-demo.ps1
+```
+
+Use `pwsh`, not `powershell` or `.\scripts\start-demo.ps1` alone. The script
+builds the app in Docker, prepares the fictional dataset, and checks app health.
+For this Java 21 PR, the container images supply Java 21. No host JDK path is
+needed.
+
+Wait for `Caldova Pharmaceuticals is ready at http://127.0.0.1:8080`. Then open
+that address and sign in as `presenter` with the original `PRESENTER_PASSWORD`.
+
+or 
+
+```
+$env:JAVA_HOME = 'C:\Users\oreakinodidi\AppData\Local\jdks\jdk-21.0.13.1+2'
+$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
+mvn -version
+docker compose stop app
+docker compose up -d --wait --wait-timeout 420 oracle
+$env:SPRING_DATASOURCE_URL = 'jdbc:oracle:thin:@localhost:1521/FREEPDB1'
+$env:SPRING_DATASOURCE_USERNAME = 'CALDOVA_READ'
+$env:SPRING_DATASOURCE_PASSWORD = (
+    Get-Content -LiteralPath '.env' |
+    Where-Object { $_ -match '^CALDOVA_READ_PASSWORD=' }
+) -replace '^CALDOVA_READ_PASSWORD=', ''
+mvn spring-boot:run
+```
+
+
+#### highlight to shw to audence it modernised framework
+
+say: The original project targets Java 8. This pull request changes that target to Java 21. The terminal shows that the application compiles and starts on Java 21. Spring Boot remains at version 2.7.18 in this upgrade. We will now check the application pages and database features
 
 ### 8. Close with the point of the demo
 
