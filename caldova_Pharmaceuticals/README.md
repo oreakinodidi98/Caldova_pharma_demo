@@ -11,7 +11,9 @@ The database contains four plants, 40 lines per plant, and two shifts per line p
 - Free local ports 8080 and 1521, and sufficient Docker memory for Oracle Free. Allocate at least 4 GB to the Docker VM.
 - Internet access for the first image and dependency downloads.
 
-The verified Oracle image, `gvenzl/oracle-free:23.26.0-slim`, supports Linux ARM64 and AMD64. It exposes database service `FREEPDB1`. Java 8 builds and tests run in `maven:3.9.9-eclipse-temurin-8`; the application runs in `eclipse-temurin:8-jre`. A host Java installation is not needed for the container workflow.
+The verified Oracle image, `gvenzl/oracle-free:23.26.0-slim`, supports Linux ARM64 and AMD64. It exposes database service `FREEPDB1`. A host Java installation is not needed for the container workflow.
+
+The helper scripts read `java.version` from `pom.xml` and set `CALDOVA_JAVA_VERSION` for Compose. Builds and tests use `maven:3.9-eclipse-temurin-<version>`; the application uses `eclipse-temurin:<version>-jre`. Java `1.8` maps to `8`. The validation workflow keeps this setting across all steps. After a Java upgrade, set `CALDOVA_JAVA_VERSION` to the POM Java major version before running Docker Compose directly. Changing the host JDK alone does not change the container JDK.
 
 This deliberately old application stack is for a local demonstration, not a new production system. Do not expose it to a shared network.
 

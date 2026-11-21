@@ -1,11 +1,14 @@
-FROM maven:3.9.9-eclipse-temurin-8 AS build
+ARG JAVA_VERSION=8
+FROM maven:3.9-eclipse-temurin-${JAVA_VERSION} AS build
 WORKDIR /workspace
 COPY pom.xml .
 COPY src ./src
 RUN mvn -B -ntp -DskipTests package
 
-FROM eclipse-temurin:8-jre
+FROM eclipse-temurin:${JAVA_VERSION}-jre
 LABEL com.azure.containerizationassist.createdby="containerization-assist"
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build /workspace/target/production-demo-1.0.0.jar /app/app.jar
 USER 10001:10001

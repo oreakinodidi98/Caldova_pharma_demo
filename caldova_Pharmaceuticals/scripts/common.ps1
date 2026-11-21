@@ -1,6 +1,13 @@
 $ErrorActionPreference = 'Stop'
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 
+[xml]$projectPom = Get-Content -LiteralPath (Join-Path $ProjectRoot 'pom.xml') -Raw
+$javaVersion = ([string]$projectPom.project.properties.'java.version').Trim() -replace '^1\.', ''
+if ($javaVersion -notmatch '^[1-9][0-9]*$') {
+    throw 'Set java.version in pom.xml to a Java major version, such as 1.8, 17, or 25.'
+}
+$env:CALDOVA_JAVA_VERSION = $javaVersion
+
 function Invoke-Compose {
     & docker compose --project-directory $ProjectRoot -f (Join-Path $ProjectRoot 'compose.yaml') @args
     if ($LASTEXITCODE -ne 0) { throw "Caldova Docker Compose command failed (exit $LASTEXITCODE)." }

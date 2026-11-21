@@ -31,10 +31,15 @@ class OraclePortalIT {
     @Autowired private PasswordEncoder encoder;
 
     @Test
-    void oracleSignInProtectsPagesAndLogoutEndsTheSession() throws Exception {
+    void unauthenticatedPagesRedirectToLogin() throws Exception {
         for (String path : new String[]{"/","/lines","/maintenance","/rota","/lines/1"}) {
-            mvc.perform(get(path)).andExpect(status().isFound()).andExpect(redirectedUrlPattern("**/login"));
+            mvc.perform(get(path)).andExpect(status().isFound())
+                    .andExpect(header().string("Location",anyOf(is("/login"),is("http://localhost/login"))));
         }
+    }
+
+    @Test
+    void oracleSignInProtectsPagesAndLogoutEndsTheSession() throws Exception {
         mvc.perform(get("/login")).andExpect(status().isOk()).andExpect(view().name("login"));
         mvc.perform(get("/api/health")).andExpect(status().isOk());
         MvcResult result = mvc.perform(post("/login").with(csrf()).param("username","presenter")

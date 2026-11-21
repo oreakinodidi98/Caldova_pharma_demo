@@ -25,12 +25,17 @@ jobs:
         working-directory: caldova_Pharmaceuticals
     steps:
       - uses: actions/checkout@v4
+      - name: Select container Java version from pom.xml
+        shell: pwsh
+        run: |
+          . ./scripts/common.ps1
+          "CALDOVA_JAVA_VERSION=$env:CALDOVA_JAVA_VERSION" >> $env:GITHUB_ENV
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
           cache-dependency-path: caldova_Pharmaceuticals/browser-tests/package-lock.json
-      - name: Verify Java 8 against real Oracle
+      - name: Verify project Java version against real Oracle
         shell: pwsh
         run: ./scripts/verify-demo.ps1
       - name: Verify reset preserves accounts and restores all records
