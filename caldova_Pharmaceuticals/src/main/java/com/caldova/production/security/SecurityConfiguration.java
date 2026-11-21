@@ -36,28 +36,27 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain security(HttpSecurity http, UserDetailsService users,
                                         PasswordEncoder encoder) throws Exception {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(users);
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(users);
         provider.setPasswordEncoder(encoder);
         http.authenticationProvider(provider)
-                .authorizeRequests()
-                .antMatchers("/login", "/css/**", "/error", "/api/health").permitAll()
-                .anyRequest().authenticated()
-                .and().formLogin().loginPage("/login").defaultSuccessUrl("/", false)
-                .failureHandler((request, response, exception) -> {
-                    if (exception instanceof AuthenticationServiceException) {
-                        LOG.warn("Oracle sign-in service failed ({})", exception.getClass().getSimpleName());
-                        response.sendError(503, "Sign-in is temporarily unavailable. Check the local Oracle database.");
-                    } else {
-                        LOG.warn("Presenter sign-in was rejected");
-                        response.sendRedirect("/login?error");
-                    }
-                })
-                .and().logout().logoutUrl("/logout").logoutSuccessUrl("/login?logout");
-        http.headers().contentSecurityPolicy(
-                "default-src 'none'; style-src 'self'; img-src 'self'; form-action 'self'; "
-                        + "frame-ancestors 'none'; base-uri 'none'")
-                .and().referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER);
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/login", "/css/**", "/error", "/api/health").permitAll()
+                        .anyRequest().authenticated())
+                .formLogin(form -> form.loginPage("/login").defaultSuccessUrl("/", false)
+                        .failureHandler((request, response, exception) -> {
+                            if (exception instanceof AuthenticationServiceException) {
+                                LOG.warn("Oracle sign-in service failed ({})", exception.getClass().getSimpleName());
+                                response.sendError(503, "Sign-in is temporarily unavailable. Check the local Oracle database.");
+                            } else {
+                                LOG.warn("Presenter sign-in was rejected");
+                                response.sendRedirect("/login?error");
+                            }
+                        }))
+                .logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login?logout"))
+                .headers(headers -> headers.contentSecurityPolicy(csp -> csp.policyDirectives(
+                                "default-src 'none'; style-src 'self'; img-src 'self'; form-action 'self'; "
+                                        + "frame-ancestors 'none'; base-uri 'none'"))
+                        .referrerPolicy(referrer -> referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER)));
         return http.build();
     }
 }
