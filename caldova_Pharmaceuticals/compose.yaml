@@ -24,7 +24,7 @@ services:
     build:
       context: .
       args:
-        JAVA_VERSION: ${CALDOVA_JAVA_VERSION:-8}
+        JAVA_VERSION: ${CALDOVA_JAVA_VERSION:-25}
     environment:
       SERVER_ADDRESS: 0.0.0.0
       SPRING_DATASOURCE_URL: jdbc:oracle:thin:@oracle:1521/FREEPDB1
@@ -37,7 +37,7 @@ services:
         condition: service_healthy
 
   verify:
-    image: maven:3.9-eclipse-temurin-${CALDOVA_JAVA_VERSION:-8}
+    image: maven:3.9-eclipse-temurin-${CALDOVA_JAVA_VERSION:-25}
     profiles: ["tools"]
     working_dir: /workspace
     volumes:
