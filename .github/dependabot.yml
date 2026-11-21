@@ -13,22 +13,24 @@ updates:
     commit-message:
       prefix: '[Dependabot]'
       include: 'scope'
-  - package-ecosystem: "npm"
-    directory: "/caldova_Pharmaceuticals/browser-tests"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 2
-    commit-message:
-      prefix: '[Dependabot]'
-      include: 'scope'
-  - package-ecosystem: "docker"
-    directory: "/caldova_Pharmaceuticals"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 2
-    commit-message:
-      prefix: '[Dependabot]'
-      include: 'scope'
+  # Browser-test tooling: routine version updates disabled.
+  # - package-ecosystem: "npm"
+  #   directory: "/caldova_Pharmaceuticals/browser-tests"
+  #   schedule:
+  #     interval: "weekly"
+  #   open-pull-requests-limit: 2
+  #   commit-message:
+  #     prefix: '[Dependabot]'
+  #     include: 'scope'
+  # Java container versions follow the POM: routine image updates disabled.
+  # - package-ecosystem: "docker"
+  #   directory: "/caldova_Pharmaceuticals"
+  #   schedule:
+  #     interval: "weekly"
+  #   open-pull-requests-limit: 2
+  #   commit-message:
+  #     prefix: '[Dependabot]'
+  #     include: 'scope'
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
