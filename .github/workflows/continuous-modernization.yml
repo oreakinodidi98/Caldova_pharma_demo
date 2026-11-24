@@ -56,7 +56,7 @@ jobs:
 # fetch-depth: 0 gives full Git history.
 # persist-credentials: false prevents the default checkout token from being saved in Git config, because the workflow later uses the custom PAT for pushing.
       - name: Check out default branch
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0

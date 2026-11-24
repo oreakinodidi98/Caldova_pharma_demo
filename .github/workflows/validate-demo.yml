@@ -26,7 +26,7 @@ jobs:
       run:
         working-directory: caldova_Pharmaceuticals
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Select container Java version from pom.xml
         shell: pwsh
         run: |

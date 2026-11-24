@@ -39,7 +39,7 @@ jobs:
       plan_dir: ${{ steps.plan.outputs.directory }}
     steps:
       - name: Check out the source revision
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -164,7 +164,7 @@ jobs:
             { echo "::error::No approval was found. Configure a required reviewer for modernization-review."; exit 1; }
 
       - name: Check out the same source revision
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -229,7 +229,7 @@ jobs:
       actions: write
     steps:
       - name: Check out the source revision
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
