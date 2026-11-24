@@ -5,11 +5,37 @@
 **Story in one sentence:** Caldova has a useful but ageing production-line application; the demo shows how we can use Agentic AI development with github copilot to understand the application, set a starting point for a new engineer, go from idea to software and make modernisation a regular part of youd SDLC so your application are constantly evolving with technology your system depends and is built on .
 
 
-i am a new engineer in the caldova dev eam, everyone is busy ahead of christmas just got hired
+i am a new engineer in the caldova dev team, everyone is busy ahead of christmas an i just got hired. i first go onto github projects to see the the issues, different view of what the team is working on , what i am assighned to etc, this is a bit overwhelming (in github.com). but best place too start this to understand the codebase . can use one of the frontier models or a custom agent <would need a prompt to give an overview of the codebase highlight the issues and ignore the fact its a demo> (in IDE)
 
-first go onto github projects to see the the issues, different view of what the team is working on , what i am assighned to etc,
+after understanding the codebase i realise the main initiative is to modernise the code base and then start working on the features planned in backlog.
 
-overwhelming . but best place too start tis to understand the codebase . uses newb
+next i set the scene (in github copilot App) open project folder on main branch and run application in terminal
+
+workflows -> run modernise workflow <determine target value> -> also run manual intervention workflow where it creates a plan <determine target value>
+
+maybe show a previous run 
+now go back into github app -> show the modernised workflow  -> run it -> show application has been moderinised 
+Now work on a ui issue <issue31> on the modernised branch modernize-reviewed-44820445374-1
+rember to copit the .env file into this worktree
+
+working with the frontend dev agent in github copilot app select isuue 5 (its issue 30 for practise but 34 for live demo) and run current prompt `create a plan for this in this branch then implement the changes and run application` (this can be improved on ) wathc it implement that issue 
+
+think thats the issue to create and interactive ui map for factory fauls . stwithc to worktree that has already completed this if it takes long
+
+another issue we were asked to work on was to move from on prem (local) to aks so we need to containerise the whole application
+
+use either the containers agent
+
+and then use azure-deploy agent to create a plan generate and deploy to existing container i have in my enviroment the k8-dev-sc-oa-lab-01 and run this
+
+showing GitHub AI tooling boosts productivity across the whole "software lifecycle” and so can add value & impact to many roles/ personas
+ 
+so its the Custom Agents that allow you define behavior, communication style, knowledge focus, and decision-making strategies to suit personas. 
+ 
+lots of examples - drilling down into a few: we have
+ 
+“DevOps infrastructure teams can use COpilot
+to quickly scaffold and validate infrastructure-as-code, andcreate automated workflows.”
 
 ### 1. Set the scene
 
@@ -326,6 +352,7 @@ CALDOVA_OWNER_PASSWORD=
 CALDOVA_READ_PASSWORD=
 PRESENTER_PASSWORD=
 "@ | Set-Content -Path .env
+
 $env:JAVA_HOME = 'C:\Users\oreakinodidi\AppData\Local\jdks\jdk-25.0.2'
 $env:JAVA_HOME = 'C:\Users\oreakinodidi\AppData\Local\jdks\jdk-21.0.13.1+2'
 $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
