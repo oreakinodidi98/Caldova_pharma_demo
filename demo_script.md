@@ -37,6 +37,9 @@ lots of examples - drilling down into a few: we have
 “DevOps infrastructure teams can use COpilot
 to quickly scaffold and validate infrastructure-as-code, andcreate automated workflows.”
 
+summarise : show the agentic devops stack . went from an onboarding -> idea -> code modernisation -> building and test -> deploy observe
+
+
 ### 1. Set the scene
 
 **Action:** Open the project in the GitHub Copilot app. Show the the `caldova_Pharmaceuticals` folder. 
