@@ -2,8 +2,14 @@
 
 ## Presenter run of show
 
-**Story in one sentence:** Caldova has a useful but ageing production-line application; the demo shows how we can use Agentic AI development with github copilot to understand the application, set a starting point, and make modernisation a regular part of youd SDLC so your application are constantly evolving with technology your system depends and is built on .
+**Story in one sentence:** Caldova has a useful but ageing production-line application; the demo shows how we can use Agentic AI development with github copilot to understand the application, set a starting point for a new engineer, go from idea to software and make modernisation a regular part of youd SDLC so your application are constantly evolving with technology your system depends and is built on .
 
+
+i am a new engineer in the caldova dev eam, everyone is busy ahead of christmas just got hired
+
+first go onto github projects to see the the issues, different view of what the team is working on , what i am assighned to etc,
+
+overwhelming . but best place too start tis to understand the codebase . uses newb
 
 ### 1. Set the scene
 
