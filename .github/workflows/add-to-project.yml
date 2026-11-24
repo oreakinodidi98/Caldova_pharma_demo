@@ -20,7 +20,7 @@ jobs:
       - uses: actions/add-to-project@v1.0.2
         with:
           project-url: ${{ env.PROJECT_URL }}
-          github-token: ${{ secrets.ADD_TO_PROJECT_PAT || secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.ADD_TO_PROJECT_PAT || secrets.GH_TOKEN }}
   label_issues:
     needs: add-to-project
     runs-on: ubuntu-latest
@@ -34,7 +34,7 @@ jobs:
             echo "No label to add."
           fi
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GH_REPO: ${{ github.repository }}
           NUMBER: ${{ github.event.issue.number }}
           LABELS: ${{ vars.ISSUE_LABEL }}
