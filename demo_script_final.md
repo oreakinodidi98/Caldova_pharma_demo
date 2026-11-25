@@ -83,7 +83,7 @@ docker compose ps -a
 ```
 
 ## Step 4 (Modernise):
-**Say:** The application works but to achieve all the future plans we discussed about from errorr diagnostic to using CCTV feeds and AI to fix line failores and building predictive models for worker shift We needto move beyond Java 8. Potential upgrade targets include **Java 11, 17 or 25**.”
+**Say:** The app works, but to get anywhere near those future plans — AI-assisted diagnostics, predictive models for shift planning — we need to move beyond Java 8. In real life we'd modernise the database too; for this demo we're only touching the app. Potential upgrade targets include **Java 11, 17 or 25**.”
 
 **Say:** "in real life we would modernise the DB and app but for this demo will only focus on app"
 
@@ -106,17 +106,19 @@ For the input, use either:
 
 **Say:** :also most importantly it has a schedule, so we can allow it to run weekley or on a regular bassis. This allows us to inject modernisation into SDLC so the application is constantly evolving with technology your system depends and is built on
 
-**Action:** Show `.github\workflows\ci.yml` 
+**Say:** Two things make this safe to run unattended: `ci.yml` gives us a baseline — did the code build and pass tests before we touched anything — and `copilot-setup-steps.yml` preps the cloud agent's environment with every JDK version it might need, while Java 8 stays the default for the live app. Together, that's the known-good starting point.
+
+<!-- **Action:** Show `.github\workflows\ci.yml` 
 **Say:** Build pipeline for the intended baseline check. aBefore changing an old application, we need a known starting point. CI workflow checks whether the current code builds and tests. The baseline lets us compare a future change with what worked before. This workflow will also Run  for the generated baranch and PR for different modernisation targets as the modernisation workflow later triggers  ”.
 
 **Action:** Open `.github\workflows\copilot-setup-steps.yml`. 
-**Say:** This Prepares the Copilot cloud agent environment with both legacy and modern JDKs, while keeping Java 8 as the default for the current app. 
+**Say:** This Prepares the Copilot cloud agent environment with both legacy and modern JDKs, while keeping Java 8 as the default for the current app.  -->
 
 **Say:** “Modernisation does not have to wait for a once-a-decade rewrite. This workflow can run on a schedule or on demand. The input tells the Modernize CLI what upgrade to consider. proposes changes and opens a pull request from a new branch. The change is not merged automatically. Reviewers still need to inspect the diff and validation results before deciding whether to merge.”
 
 **Action:** Open `.github\workflows\reviewed-modernization.yml`. 
 
-**Say:** also have the ability to add a human check earlier: the agent assesses the application and creates a plan, but it must wait for our approval before it changes application files. We still review the code and test results before merge.
+**Say:** for anything bigger we also have the ability to add a human check earlier: the agent assesses the application and creates a plan, but it must wait for our approval before it changes application files. We still review the code and test results before merge.
 
 ## Step 5 (backlog feature):
 
