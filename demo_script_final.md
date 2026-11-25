@@ -2,15 +2,26 @@
 
 ## Presenter run of show
 
-**Story in one sentence:** Caldova has a useful but ageing production-line application; the demo shows how we can use Agentic AI development with github copilot to understand the application, set a starting point for a new engineer, go from idea to software and make modernisation a regular part of our SDLC so your application are constantly evolving with technology your system depends and is built on .
+**Story in one sentence:** Caldova has a useful but ageing production-line applications; the demo shows how we can use Agentic AI development with github copilot to understand the application, set a starting point for a new engineer, go from idea to software and make modernisation a regular part of our SDLC so your application are constantly evolving with technology your system depends on and is built on .
 
-A new engineer at Caldova, hired just before Christmas while everyone's heads-down, has to get oriented, find the initiatives that add the most value, modernise the app, ship a backlog feature, and move it toward Azure — using agentic AI dev workflow with GitHub Copilot the whole way.
+Imagine now, i get hired i'm a new engineer at Caldova, hired just before Christmas while everyone's heads-down, has to get oriented, find the initiatives that add the most value, hint hitn modernise the app, ship a backlog feature, and move it toward Azure — using agentic AI dev workflow with GitHub Copilot .
+
+This is what your future could look like your software developers gather requirements and steer implementation, review changes and evaluate test results, then investigate what happens in production. Agents can help them work more efficiently across all of these stages: Plan, Build, Verify, and Observe. We’ll walk through what an effective agentic engineering workflow looks like on GitHub.
 
 ## step 1:
-Action: Open GitHub.com → your Project board. Show the issue list, views, what's assigned to "you." 
+**Action**: Open GitHub.com → your Project board. Show the issue list, views, what's assigned to "you." 
 
-Say: "I just joined Caldova's dev team. Everyone's busy before Christmas, and this board is my first fifteen minutes — a wall of issues, several views, and I'm not sure where to start. So before I open an editor, I let the repo tell me what matters."
- 
+**Say**: "I just joined Caldova's dev team. Everyone's busy before Christmas, and this board is my first fifteen minutes — a wall of issues, several views, and I'm not sure where to start. 
+
+**Say**: "Normally this is where half a day disappears — the design lives in one doc, a constraint from last quarter's call is buried in an email thread, and the reason the line-stop logic works this way is explained in a two-year-old pull request nobody remembers. I'd spend the morning just reconnecting dots before I could write anything."
+
+**Action**: Point at one existing issue with a real description/acceptance criteria. Say: "Copilot can pull that scattered context together and turn an agreed decision straight into a scoped GitHub Issue — acceptance criteria included, not a thread someone has to translate later."
+
+**Say**: the team have essentially keept routine triage from consuming planning time. Using GitHub Agentic Workflows to label our issues and estimate task complexity. Assign low-complexity tasks directly to Copilot, then spend our time focusing on harder decisions.
+
+**Say**: So because the team have got everyone and every agent on the same page before I open an editor, I let the repo tell me what matters."
+
+
 ## Step 2 (Repo):
 Action: In the IDE, prompt a frontier model / your repo-orientation custom agent: "Summarise this codebase for a new engineer: what does it do, what's the current initiative, and what open issues matter most? Ignore that this is a demo." 
  
