@@ -20,19 +20,26 @@ This is what your future could look like your software developers gather require
 **Say**: the team have essentially keept routine triage from consuming planning time. Using GitHub Agentic Workflows to label our issues and estimate task complexity. Assign low-complexity tasks directly to Copilot, then spend our time focusing on harder decisions.
 
 **Say**: So because the team have got everyone and every agent on the same page before I open an editor, I let the repo tell me what matters."
+- can also show the session of **Roadmap issues creation** not working because the agent used was not the correct one
 
 
 ## Step 2 (Repo):
 Action: In the IDE, prompt a frontier model / your repo-orientation custom agent: "Summarise this codebase for a new engineer: what does it do, what's the current initiative, and what open issues matter most? Ignore that this is a demo." 
  
 Say: 
+- i am now ready to turn that plan into code
 - "I verify this against the actual files before I move on and start working it"
 - "rembering it's an assistant, not the source of truth." 
  
 Payoff line: "It tells me the main initiative is modernisation, with a backlog of features waiting behind it. That's my two jobs for today."
 
 ## Step 3 (Set scene):
-Action: Go to github copilot app , **Action:** Open the project in the GitHub Copilot app. Show the the `caldova_Pharmaceuticals` folder. 
+**Action**: Go to github copilot app 
+
+**Action:** Open the project in the GitHub Copilot app. Show the the `caldova_Pharmaceuticals` folder. 
+
+**Say:** “Copilot app allows you to keep your work moving without being tied to the computer where you started it. lets you pick up the same Copilot session across clients, so you can work wherever it’s most convenient for you."
+
 
 **Say:** “We will use the GitHub Copilot app to explore this repository and run the app. This was made from the design spec we got from our last call. Caldova — four plants, 160 lines, two shifts a day. This on-prem app investigates line stops, but it's manual and the people who built it have mostly left." Flip Overview → one line's alarms → shift rota. "Fixed, fictional, read-only — no live equipment, no AI diagnosis yet. That's the starting point."
 
@@ -43,10 +50,10 @@ or
 
 ```
 @"
-ORACLE_PWD=C2E69EF3E030FCA7E407D0FD5C7A8E5B76AF4E6C7D9FE1854
-CALDOVA_OWNER_PASSWORD=C96E1F3B566DB23A8C43039C8F654CFBF31900BA8ED721F10
-CALDOVA_READ_PASSWORD=C29554A70155F153443374B101E4BC37D0AFE1CDB37B22581
-PRESENTER_PASSWORD=C19A785AC569F8092E9CF14BB58496615279425FF5F996570
+ORACLE_PWD=
+CALDOVA_OWNER_PASSWORD=
+CALDOVA_READ_PASSWORD=
+PRESENTER_PASSWORD=
 "@ | Set-Content -Path .env
 
 $env:JAVA_HOME = 'C:\Users\oreakinodidi\AppData\Local\jdks\jdk-17.0.18'
