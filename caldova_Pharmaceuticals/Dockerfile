@@ -1,4 +1,4 @@
-ARG JAVA_VERSION=8
+ARG JAVA_VERSION=21
 FROM maven:3.9-eclipse-temurin-${JAVA_VERSION} AS build
 WORKDIR /workspace
 COPY pom.xml .
